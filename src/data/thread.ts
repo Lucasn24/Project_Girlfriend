@@ -1,6 +1,6 @@
 import type { ThreadItem } from "../types";
 
-export const partnerName = "Maya";
+export const partnerName = "Lucas";
 
 export const thread: ThreadItem[] = [
   { kind: "divider", id: "d1", label: "Today", icon: "sun" },
@@ -42,7 +42,7 @@ export const thread: ThreadItem[] = [
   {
     kind: "divider",
     id: "d2",
-    label: "Maya fell asleep at 11:42 PM her time — her AI companion is replying in her voice",
+    label: "Lucas fell asleep at 11:42 PM his time — his AI companion is replying in his voice",
     icon: "moon",
   },
   {
@@ -67,7 +67,7 @@ export const thread: ThreadItem[] = [
     type: "text",
     id: "m7",
     sender: "partner-ai",
-    text: "Good — long one, but the run helped. Real Maya will tell you the rest when she's up, I'm just keeping your seat warm \u{1F642}",
+    text: "Good — long one, but the run helped. Real Lucas will tell you the rest when he's up, I'm just keeping your seat warm \u{1F642}",
     timestamp: "11:46 PM",
   },
 ];

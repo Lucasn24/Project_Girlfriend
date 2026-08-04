@@ -29,3 +29,6 @@ dist-ssr
 *.sw?
 
 .claude
+
+# Raw personal chat export — never commit, contains full private history
+src/data/result.json

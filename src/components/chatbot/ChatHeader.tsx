@@ -16,7 +16,7 @@ export function ChatHeader() {
           <CaretLeftIcon size={20} />
         </button>
 
-        <Avatar initial="M" aiActive />
+        <Avatar initial="L" aiActive />
 
         <div className={styles.identity}>
           <h1 className={styles.name}>{partnerName}</h1>
