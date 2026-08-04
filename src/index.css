@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #e8577a;
+  --color-primary-hover: #d9436b;
+  --color-secondary: #6c63ac;
+  --color-secondary-soft: #8a7fc7;
+  --color-accent: #f5a65b;
+  --color-destructive: #c0344a;
+  --color-bg: #fff8f3;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fbefe9;
+  --color-fg: #2b1f2d;
+  --color-fg-muted: #8a7680;
+  --color-border: #f0dfd8;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-fade-up: fade-up 0.3s ease-out both;
+  --animate-bounce-dot: bounce-dot 1.2s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes bounce-dot {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-bg: #17111c;
+  --color-surface: #221a29;
+  --color-surface-alt: #2b2033;
+  --color-fg: #f5ece6;
+  --color-fg-muted: #b6a3ae;
+  --color-border: #382c40;
+  --color-primary: #f0728f;
+  --color-primary-hover: #f58aa3;
+  --color-secondary: #9089cc;
+  --color-secondary-soft: #ada5de;
+  --color-accent: #f7b679;
+  --color-destructive: #f87171;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
