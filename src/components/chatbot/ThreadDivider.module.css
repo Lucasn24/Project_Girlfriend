@@ -1,0 +1,39 @@
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0.25rem 0;
+  padding: 0.25rem 1.5rem;
+  text-align: center;
+}
+
+.line {
+  height: 1px;
+  flex: 1 1 0%;
+  background: var(--color-border);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.iconMoon {
+  color: var(--color-secondary);
+}
+
+.iconSun {
+  color: var(--color-accent);
+}
+
+.label {
+  max-width: 20rem;
+}

@@ -1,0 +1,32 @@
+.wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.circle {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.badge {
+  position: absolute;
+  bottom: -0.125rem;
+  right: -0.125rem;
+  display: flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid var(--color-surface);
+  background: var(--color-secondary);
+  color: #fff;
+}

@@ -29,7 +29,7 @@ export async function generateReply(history: HistoryTurn[]): Promise<string> {
     : "";
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
     contents: history.map((turn) => ({
       role: turn.role,
       parts: [{ text: turn.text }],
@@ -37,7 +37,7 @@ export async function generateReply(history: HistoryTurn[]): Promise<string> {
     config: {
       systemInstruction: personaSystemPrompt + exampleBlock,
       temperature: 1,
-      maxOutputTokens: 200,
+      maxOutputTokens: 1024,
     },
   });
 

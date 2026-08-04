@@ -1,0 +1,49 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  animation: fade-up 0.3s ease-out both;
+}
+
+.badge {
+  margin-bottom: 0.25rem;
+  margin-left: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
+.bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 1rem;
+  border-bottom-left-radius: 0.375rem;
+  border: 1px dashed color-mix(in srgb, var(--color-secondary) 40%, transparent);
+  background: var(--color-surface);
+  padding: 0.875rem 1rem;
+}
+
+.dot {
+  height: 0.375rem;
+  width: 0.375rem;
+  border-radius: 9999px;
+  background: var(--color-fg-muted);
+  animation: bounce-dot 1.2s ease-in-out infinite;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0ms;
+}
+.dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+.dot:nth-child(3) {
+  animation-delay: 300ms;
+}
