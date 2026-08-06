@@ -30,5 +30,7 @@ dist-ssr
 
 .claude
 
-# Raw personal chat export — never commit, contains full private history
+# Raw personal chat export and derived data — never commit, contains full private history
 src/data/result.json
+server/data/reply-pairs.json
+server/data/reply-index.json

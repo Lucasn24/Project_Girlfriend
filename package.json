@@ -7,6 +7,8 @@
     "dev": "concurrently -n web,api -c blue,green \"npm:dev:web\" \"npm:dev:api\"",
     "dev:web": "vite",
     "dev:api": "tsx watch server/index.ts",
+    "extract:pairs": "tsx scripts/extract-reply-pairs.ts",
+    "build:index": "tsx scripts/build-reply-index.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"

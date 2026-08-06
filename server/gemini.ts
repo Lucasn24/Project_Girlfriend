@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { personaSystemPrompt, exampleMessages } from "./persona.js";
+import { findSimilarExchanges } from "./retrieval.js";
 
 export interface HistoryTurn {
   role: "user" | "model";
@@ -22,11 +23,18 @@ function getClient(): GoogleGenAI {
 export async function generateReply(history: HistoryTurn[]): Promise<string> {
   const ai = getClient();
 
-  const exampleBlock = exampleMessages.length
-    ? `\n\nReal example messages from this person, for style reference:\n${exampleMessages
-        .map((message) => `- ${message}`)
+  const lastUserTurn = [...history].reverse().find((turn) => turn.role === "user");
+  const similarExchanges = lastUserTurn ? await findSimilarExchanges(lastUserTurn.text) : [];
+
+  const exampleBlock = similarExchanges.length
+    ? `\n\nReal past exchanges where this person replied to something similar to what was just said, for reference on how he responds:\n${similarExchanges
+        .map((exchange) => `- them: ${exchange.context}\n  him: ${exchange.reply}`)
         .join("\n")}`
-    : "";
+    : exampleMessages.length
+      ? `\n\nReal example messages from this person, for style reference:\n${exampleMessages
+          .map((message) => `- ${message}`)
+          .join("\n")}`
+      : "";
 
   const response = await ai.models.generateContent({
     model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
