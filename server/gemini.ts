@@ -20,11 +20,16 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
-export async function generateReply(history: HistoryTurn[]): Promise<string> {
+export async function* streamReply(history: HistoryTurn[]): AsyncGenerator<string> {
+  const start = performance.now();
   const ai = getClient();
 
   const lastUserTurn = [...history].reverse().find((turn) => turn.role === "user");
+  const retrievalStart = performance.now();
   const similarExchanges = lastUserTurn ? await findSimilarExchanges(lastUserTurn.text) : [];
+  console.log(
+    `[gemini] retrieval: ${similarExchanges.length} matches in ${(performance.now() - retrievalStart).toFixed(0)}ms`,
+  );
 
   const exampleBlock = similarExchanges.length
     ? `\n\nReal past exchanges where this person replied to something similar to what was just said, for reference on how he responds:\n${similarExchanges
@@ -36,7 +41,8 @@ export async function generateReply(history: HistoryTurn[]): Promise<string> {
           .join("\n")}`
       : "";
 
-  const response = await ai.models.generateContent({
+  const generateStart = performance.now();
+  const stream = await ai.models.generateContentStream({
     model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
     contents: history.map((turn) => ({
       role: turn.role,
@@ -49,9 +55,23 @@ export async function generateReply(history: HistoryTurn[]): Promise<string> {
     },
   });
 
-  const text = response.text;
-  if (!text) {
+  let receivedAny = false;
+  let firstChunk = true;
+  for await (const chunk of stream) {
+    const text = chunk.text;
+    if (!text) continue;
+    if (firstChunk) {
+      console.log(`[gemini] first chunk after ${(performance.now() - generateStart).toFixed(0)}ms`);
+      firstChunk = false;
+    }
+    receivedAny = true;
+    yield text;
+  }
+
+  console.log(`[gemini] generateContentStream took ${(performance.now() - generateStart).toFixed(0)}ms`);
+  console.log(`[gemini] generateReply total ${(performance.now() - start).toFixed(0)}ms`);
+
+  if (!receivedAny) {
     throw new Error("Gemini returned an empty response");
   }
-  return text.trim();
 }

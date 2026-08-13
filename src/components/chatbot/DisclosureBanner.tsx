@@ -12,8 +12,8 @@ export function DisclosureBanner() {
 
         <div className={styles.body}>
           <p className={styles.text}>
-            <span className={styles.name}>{partnerName} is asleep in Tokyo.</span>{" "}
-            Her AI companion is replying in her voice until 7:00 AM her time.
+            <span className={styles.name}>{partnerName} is asleep in Birmingham.</span>{" "}
+            His AI companion is replying in his voice until 7:00 AM his time.
           </p>
           <div className={styles.actions}>
             <button type="button" className={styles.linkButton}>

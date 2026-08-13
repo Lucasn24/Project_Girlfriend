@@ -61,22 +61,51 @@ export function useChat() {
         body: JSON.stringify({ history: historyForRequest }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok || !response.body) {
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.error ?? "Something went wrong");
       }
 
-      const aiMessage: ChatMessage = {
-        kind: "message",
-        type: "text",
-        id: `local-${nextId++}`,
-        sender: "partner-ai",
-        text: data.reply as string,
-        timestamp: formatNow(),
-      };
+      const aiMessageId = `local-${nextId++}`;
+      let aiText = "";
+      let aiMessageAdded = false;
 
-      setItems((prev) => [...prev, aiMessage]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        aiText += chunk;
+
+        if (!aiMessageAdded) {
+          aiMessageAdded = true;
+          const aiMessage: ChatMessage = {
+            kind: "message",
+            type: "text",
+            id: aiMessageId,
+            sender: "partner-ai",
+            text: aiText,
+            timestamp: formatNow(),
+          };
+          setItems((prev) => [...prev, aiMessage]);
+        } else {
+          setItems((prev) =>
+            prev.map((item) =>
+              item.kind === "message" && item.id === aiMessageId
+                ? { ...item, text: aiText }
+                : item,
+            ),
+          );
+        }
+      }
+
+      if (!aiMessageAdded) {
+        throw new Error("Something went wrong");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

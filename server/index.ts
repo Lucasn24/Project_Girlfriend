@@ -1,13 +1,14 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
-import { generateReply, type HistoryTurn } from "./gemini.js";
+import { streamReply, type HistoryTurn } from "./gemini.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.post("/api/chat", async (req, res) => {
+  const start = performance.now();
   const history = req.body?.history as HistoryTurn[] | undefined;
 
   if (!Array.isArray(history) || history.length === 0) {
@@ -15,14 +16,30 @@ app.post("/api/chat", async (req, res) => {
     return;
   }
 
+  console.log(`[chat] request received (${history.length} turns)`);
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+
   try {
-    const reply = await generateReply(history);
-    res.json({ reply });
+    let sentAny = false;
+    for await (const chunk of streamReply(history)) {
+      sentAny = true;
+      res.write(chunk);
+    }
+    if (!sentAny) {
+      throw new Error("Gemini returned an empty response");
+    }
+    console.log(`[chat] request completed in ${(performance.now() - start).toFixed(0)}ms`);
+    res.end();
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to generate a reply",
-    });
+    console.error(`[chat] request failed after ${(performance.now() - start).toFixed(0)}ms:`, error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to generate a reply",
+      });
+    } else {
+      res.end();
+    }
   }
 });
 

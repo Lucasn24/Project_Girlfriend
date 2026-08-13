@@ -27,7 +27,11 @@ function loadIndex(): IndexedExchange[] {
   if (index) return index;
   if (indexLoadFailed) return [];
   try {
+    const start = performance.now();
     index = JSON.parse(readFileSync(INDEX_PATH, "utf-8")) as IndexedExchange[];
+    console.log(
+      `[retrieval] loaded ${index.length} indexed exchanges in ${(performance.now() - start).toFixed(0)}ms`,
+    );
     return index;
   } catch {
     indexLoadFailed = true;
@@ -51,25 +55,32 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 export async function findSimilarExchanges(query: string, k = 6): Promise<ReplyExchange[]> {
+  const start = performance.now();
   const entries = loadIndex();
   if (entries.length === 0) return [];
 
   try {
     const ai = getClient();
     const model = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
+    const embedStart = performance.now();
     const response = await ai.models.embedContent({
       model,
       contents: [query],
       config: { taskType: "RETRIEVAL_QUERY" },
     });
+    console.log(`[retrieval] embedContent took ${(performance.now() - embedStart).toFixed(0)}ms`);
     const queryVector = response.embeddings?.[0]?.values;
     if (!queryVector) return [];
 
-    return entries
+    const results = entries
       .map((entry) => ({ entry, score: cosineSimilarity(queryVector, entry.embedding) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, k)
       .map(({ entry }) => ({ context: entry.context, reply: entry.reply }));
+    console.log(
+      `[retrieval] findSimilarExchanges total ${(performance.now() - start).toFixed(0)}ms`,
+    );
+    return results;
   } catch (error) {
     console.warn("retrieval failed, falling back to static examples:", error);
     return [];
