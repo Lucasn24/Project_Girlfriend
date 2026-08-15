@@ -1,21 +1,16 @@
-import {
-  CaretLeftIcon,
-  DotsThreeVerticalIcon,
-  GlobeHemisphereWestIcon,
-} from "@phosphor-icons/react";
+import { DotsThreeVerticalIcon, GlobeHemisphereWestIcon } from "@phosphor-icons/react";
 import { Avatar } from "./Avatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { partnerName } from "../../data/thread";
+import { useConnection } from "../../hooks/useConnection";
 import styles from "./ChatHeader.module.css";
 
 export function ChatHeader() {
+  const { distanceKm, diffLabel } = useConnection();
+
   return (
     <header className={styles.header}>
       <div className={styles.row}>
-        <button type="button" aria-label="Go back" className={styles.iconButton}>
-          <CaretLeftIcon size={20} />
-        </button>
-
         <Avatar initial="L" aiActive />
 
         <div className={styles.identity}>
@@ -28,7 +23,7 @@ export function ChatHeader() {
 
         <div className={styles.distanceChip} title="Distance and time difference">
           <GlobeHemisphereWestIcon size={14} className={styles.distanceIcon} />
-          10,850 km · 14h ahead
+          {distanceKm.toLocaleString()} km · {diffLabel}
         </div>
 
         <ThemeToggle />

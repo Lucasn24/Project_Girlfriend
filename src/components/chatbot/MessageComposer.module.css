@@ -6,6 +6,12 @@
   padding: 0.625rem 1rem 1rem;
 }
 
+.inner {
+  max-width: 48rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
 .thinkingButton {
   margin-bottom: 0.625rem;
   display: inline-flex;

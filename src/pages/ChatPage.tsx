@@ -6,11 +6,15 @@ import { MessageBubble } from "../components/chatbot/MessageBubble";
 import { MessageComposer } from "../components/chatbot/MessageComposer";
 import { ThreadDivider } from "../components/chatbot/ThreadDivider";
 import { TypingIndicator } from "../components/chatbot/TypingIndicator";
-import { useChat } from "../hooks/useChat";
+import type { useChat } from "../hooks/useChat";
 import styles from "./ChatPage.module.css";
 
-export function ChatPage() {
-  const { items, sendMessage, isSending, error } = useChat();
+interface ChatPageProps {
+  chat: ReturnType<typeof useChat>;
+}
+
+export function ChatPage({ chat }: ChatPageProps) {
+  const { items, sendMessage, isSending, error } = chat;
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
