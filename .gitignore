@@ -35,3 +35,9 @@ src/data/result.json
 server/data/reply-pairs.json
 server/data/reply-index.json
 server/data/calendar-config.json
+
+# Uploaded/generated couple photos — real photos of both people, never commit
+server/data/couple-photo/
+
+# Local generation output for scripts/compare-couple-photo.ts
+scratch/

@@ -59,3 +59,10 @@ export interface CalendarStatus {
   lastSyncedAt: string | null;
   error: string | null;
 }
+
+export interface CouplePhotoState {
+  userPhotoUrl: string | null;
+  partnerPhotoUrl: string | null;
+  generatedUrl: string | null;
+  generatedAt: string | null;
+}

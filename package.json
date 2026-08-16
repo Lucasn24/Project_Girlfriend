@@ -9,11 +9,13 @@
     "dev:api": "tsx watch server/index.ts",
     "extract:pairs": "tsx scripts/extract-reply-pairs.ts",
     "build:index": "tsx scripts/build-reply-index.ts",
+    "compare:couple": "tsx scripts/compare-couple-photo.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fal-ai/client": "^1.10.1",
     "@google/genai": "^2.15.0",
     "@phosphor-icons/react": "^2.1.10",
     "cors": "^2.8.6",

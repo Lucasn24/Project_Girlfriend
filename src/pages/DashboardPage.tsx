@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ConnectionCard } from "../components/dashboard/ConnectionCard";
+import { CouplePhotoCard } from "../components/dashboard/CouplePhotoCard";
 import { GetConversationCard } from "../components/dashboard/GetConversationCard";
 import { TodayAgendaCard } from "../components/dashboard/TodayAgendaCard";
 import { useDashboardLayout, type DashboardCardId } from "../hooks/useDashboardLayout";
@@ -13,6 +14,8 @@ function renderCard(id: DashboardCardId) {
       return <ConnectionCard />;
     case "agenda":
       return <TodayAgendaCard />;
+    case "couplePhoto":
+      return <CouplePhotoCard />;
   }
 }
 

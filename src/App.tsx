@@ -2,11 +2,12 @@ import { useState } from "react";
 import { AppShell } from "./components/layout/AppShell";
 import { CalendarPage } from "./pages/CalendarPage";
 import { ChatPage } from "./pages/ChatPage";
+import { CouplePhotoPage } from "./pages/CouplePhotoPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useChat } from "./hooks/useChat";
 
-export type View = "dashboard" | "chat" | "calendar" | "settings";
+export type View = "dashboard" | "chat" | "calendar" | "couplePhoto" | "settings";
 
 function App() {
   const [view, setView] = useState<View>("dashboard");
@@ -17,6 +18,7 @@ function App() {
       {view === "dashboard" && <DashboardPage />}
       {view === "chat" && <ChatPage chat={chat} />}
       {view === "calendar" && <CalendarPage />}
+      {view === "couplePhoto" && <CouplePhotoPage />}
       {view === "settings" && <SettingsPage />}
     </AppShell>
   );
