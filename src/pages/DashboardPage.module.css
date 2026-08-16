@@ -38,6 +38,15 @@
   gap: 1.25rem;
 }
 
+.dragItem {
+  height: 100%;
+  transition: opacity 0.15s ease;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
 @media (max-width: 640px) {
   .header {
     padding: 1.5rem 1.25rem 0.75rem;

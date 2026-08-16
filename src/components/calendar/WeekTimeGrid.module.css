@@ -1,0 +1,180 @@
+.grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.stickyTop {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-surface);
+}
+
+.headerRow {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.gutter {
+  flex: 0 0 3.5rem;
+}
+
+.dayHeader {
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.625rem 0.25rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.dayHeaderName {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-fg-muted);
+}
+
+.dayHeaderNumber {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.dayHeaderToday .dayHeaderNumber {
+  color: var(--color-primary);
+}
+
+.allDayRow {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.allDayCell {
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.allDayPill {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.hourGrid {
+  display: flex;
+}
+
+.hourLabels {
+  display: flex;
+  flex: 0 0 3.5rem;
+  flex-direction: column;
+}
+
+.hourLabelCell {
+  position: relative;
+}
+
+.hourLabelText {
+  position: absolute;
+  top: -0.5em;
+  right: 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+
+.dayColumn {
+  position: relative;
+  flex: 1 1 0%;
+  min-width: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+.dayColumnToday {
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+}
+
+.nowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid var(--color-primary);
+  z-index: 1;
+}
+
+.nowLine::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  top: -0.25rem;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+}
+
+.timedEvent {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+}
+
+.timedEventTime {
+  font-size: 0.625rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.timedEventTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.eventUser {
+  background: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface));
+  color: var(--color-primary-hover);
+  border-left: 2px solid var(--color-primary);
+}
+
+.eventPartner {
+  background: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
+  color: var(--color-secondary);
+  border-left: 2px solid var(--color-secondary);
+}
+
+@media (max-width: 900px) {
+  .headerRow,
+  .allDayRow,
+  .hourGrid {
+    min-width: 44rem;
+  }
+
+  .grid {
+    overflow-x: auto;
+  }
+}

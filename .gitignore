@@ -34,3 +34,4 @@ dist-ssr
 src/data/result.json
 server/data/reply-pairs.json
 server/data/reply-index.json
+server/data/calendar-config.json

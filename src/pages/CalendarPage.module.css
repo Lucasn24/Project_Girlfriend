@@ -1,0 +1,263 @@
+.page {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 2rem 2.5rem 1rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--color-fg-muted);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.segmented {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt);
+  padding: 0.25rem;
+}
+
+.segment {
+  cursor: pointer;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.segment:hover {
+  color: var(--color-fg);
+}
+
+.segmentActive {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.navButton,
+.todayButton {
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.navButton {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.todayButton {
+  padding: 0 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  height: 2.25rem;
+}
+
+.navButton:hover,
+.todayButton:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-fg);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0 2.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+}
+
+.dotUser {
+  background: var(--color-primary);
+}
+
+.dotPartner {
+  background: var(--color-secondary);
+}
+
+.error {
+  color: var(--color-destructive);
+}
+
+.main {
+  flex: 1 1 0%;
+  overflow-y: auto;
+  padding: 1rem 2.5rem 2.5rem;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 0.75rem;
+}
+
+.monthGrid .dayCell {
+  min-height: 6.5rem;
+  max-height: 10rem;
+}
+
+.dayCellToday {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.dayCellMuted {
+  opacity: 0.45;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.375rem;
+}
+
+.dayNumber {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.dayCellToday .dayNumber {
+  color: var(--color-primary);
+}
+
+.dayEvents {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: 0.375rem;
+  overflow-y: auto;
+}
+
+.moreEvents {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+}
+
+.eventPill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  overflow: hidden;
+}
+
+.eventPillUser {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-left: 2px solid var(--color-primary);
+}
+
+.eventPillPartner {
+  background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+  border-left: 2px solid var(--color-secondary);
+}
+
+.eventTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-fg);
+}
+
+@media (max-width: 900px) {
+  .monthGrid {
+    grid-template-columns: repeat(7, minmax(4.5rem, 1fr));
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 1.5rem 1.25rem 0.75rem;
+  }
+
+  .legend {
+    padding: 0 1.25rem;
+  }
+
+  .main {
+    padding: 0.75rem 1.25rem 1.5rem;
+  }
+}

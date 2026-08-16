@@ -41,3 +41,21 @@ export interface Divider {
 }
 
 export type ThreadItem = ChatMessage | Divider;
+
+export type CalendarOwner = "user" | "partner";
+
+export interface CalendarEvent {
+  id: string;
+  owner: CalendarOwner;
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  location?: string;
+}
+
+export interface CalendarStatus {
+  configured: boolean;
+  lastSyncedAt: string | null;
+  error: string | null;
+}

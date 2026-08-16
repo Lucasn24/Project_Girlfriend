@@ -9,7 +9,7 @@ export function ConnectionCard() {
     useConnection();
 
   return (
-    <DashboardCard icon={<GlobeHemisphereWestIcon size={16} weight="fill" />} title="Where you both are">
+    <DashboardCard icon={<GlobeHemisphereWestIcon size={16} weight="fill" />} title="Where you both are" draggable>
       <div className={styles.clocks}>
         <div className={styles.clock}>
           <p className={styles.clockLabel}>You</p>

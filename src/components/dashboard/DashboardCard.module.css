@@ -1,5 +1,7 @@
 .card {
   display: flex;
+  height: 100%;
+  box-sizing: border-box;
   flex-direction: column;
   gap: 0.625rem;
   border-radius: 1rem;
@@ -32,4 +34,11 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-fg);
+}
+
+.dragHandle {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--color-fg-muted);
+  cursor: grab;
 }

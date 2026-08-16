@@ -1,4 +1,4 @@
-import { ChatCircleIcon, GearIcon, SquaresFourIcon } from "@phosphor-icons/react";
+import { CalendarBlankIcon, ChatCircleIcon, GearIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { Avatar } from "../chatbot/Avatar";
 import { partnerName } from "../../data/thread";
 import type { View } from "../../App";
@@ -12,6 +12,7 @@ interface SidebarProps {
 const NAV_ITEMS: { view: View; label: string; icon: typeof SquaresFourIcon }[] = [
   { view: "dashboard", label: "Dashboard", icon: SquaresFourIcon },
   { view: "chat", label: "Chat", icon: ChatCircleIcon },
+  { view: "calendar", label: "Calendar", icon: CalendarBlankIcon },
 ];
 
 const FOOTER_ITEMS: { view: View; label: string; icon: typeof GearIcon }[] = [

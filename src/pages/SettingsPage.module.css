@@ -98,6 +98,85 @@
   outline-offset: 2px;
 }
 
+.helpText {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.calendarField {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.calendarField .select {
+  cursor: text;
+}
+
+.saveButton {
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--color-primary);
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-surface);
+  transition: background-color 0.2s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.saveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.calendarStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+}
+
+.statusDot {
+  height: 0.5rem;
+  width: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-fg-muted);
+}
+
+.statusDotOk {
+  background: var(--color-accent);
+}
+
+.removeButton {
+  margin-left: auto;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-destructive);
+}
+
+.removeButton:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.removeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 @media (max-width: 640px) {
   .header {
     padding: 1.5rem 1.25rem 0.75rem;
