@@ -46,7 +46,7 @@ export function ChatPage({ chat }: ChatPageProps) {
         </div>
       </main>
 
-      <MessageComposer onSend={sendMessage} disabled={isSending} />
+      <MessageComposer onSend={sendMessage} />
     </div>
   );
 }
