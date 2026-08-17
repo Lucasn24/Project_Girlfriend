@@ -1,0 +1,48 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navButton,
+.todayButton {
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.navButton {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.todayButton {
+  padding: 0 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  height: 2.25rem;
+}
+
+.navButton:hover,
+.todayButton:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-fg);
+}
+
+.label {
+  min-width: 8rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}

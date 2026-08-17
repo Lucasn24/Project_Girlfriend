@@ -96,3 +96,20 @@ export interface MinuteCrypticResult extends GameResultBase {
 }
 
 export type GameResult = WordleResult | MinuteCrypticResult;
+
+export type PhotoTimelineOwner = "user" | "partner";
+
+export interface PhotoTimelineEntry {
+  id: string;
+  owner: PhotoTimelineOwner;
+  timestamp: string;
+  caption?: string;
+  originalFile: string;
+  thumbFile: string;
+  mimeType: string;
+  width: number;
+  height: number;
+  createdAt: string;
+  thumbUrl: string;
+  originalUrl: string;
+}

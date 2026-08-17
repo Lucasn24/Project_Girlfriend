@@ -1,0 +1,51 @@
+.stack {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.stackAbove {
+  bottom: 0;
+}
+
+.stackBelow {
+  top: 0;
+}
+
+.frontLayer {
+  position: relative;
+}
+
+.peekLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fanPopover {
+  position: absolute;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  gap: 0.5rem;
+  transform: translateX(-50%);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  box-shadow: 0 16px 40px color-mix(in srgb, black 30%, transparent);
+  padding: 0.625rem;
+  animation: fade-up 0.15s ease;
+}
+
+.fanAbove {
+  bottom: calc(100% + 0.75rem);
+}
+
+.fanBelow {
+  top: calc(100% + 0.75rem);
+}
+
+.fanItem {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+}

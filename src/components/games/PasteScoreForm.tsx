@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { ClipboardTextIcon, SpinnerGapIcon } from "@phosphor-icons/react";
-import { DashboardCard } from "../dashboard/DashboardCard";
+import { ClipboardTextIcon, PlusIcon, SpinnerGapIcon } from "@phosphor-icons/react";
 import { partnerName } from "../../data/thread";
 import type { GameOwner } from "../../types";
 import styles from "./PasteScoreForm.module.css";
@@ -24,47 +23,56 @@ export function PasteScoreForm({ isSubmitting, error, onSubmit }: PasteScoreForm
   };
 
   return (
-    <DashboardCard icon={<ClipboardTextIcon size={16} weight="fill" />} title="Add a score">
-      <div className={styles.segmented}>
-        <button
-          type="button"
-          className={`${styles.segment} ${owner === "user" ? styles.segmentActive : ""}`}
-          onClick={() => setOwner("user")}
-          aria-pressed={owner === "user"}
-        >
-          You
-        </button>
-        <button
-          type="button"
-          className={`${styles.segment} ${owner === "partner" ? styles.segmentActive : ""}`}
-          onClick={() => setOwner("partner")}
-          aria-pressed={owner === "partner"}
-        >
-          {partnerName}
-        </button>
+    <section className={styles.card}>
+      <div className={styles.top}>
+        <span className={styles.iconWrap} aria-hidden="true">
+          <ClipboardTextIcon size={16} weight="fill" />
+        </span>
+        <div className={styles.headerText}>
+          <h2 className={styles.title}>Add a score</h2>
+          <p className={styles.tagline}>Paste your Wordle or Minute Cryptic share text</p>
+        </div>
+        <div className={styles.segmented}>
+          <button
+            type="button"
+            className={`${styles.segment} ${owner === "user" ? styles.segmentActive : ""}`}
+            onClick={() => setOwner("user")}
+            aria-pressed={owner === "user"}
+          >
+            You
+          </button>
+          <button
+            type="button"
+            className={`${styles.segment} ${owner === "partner" ? styles.segmentActive : ""}`}
+            onClick={() => setOwner("partner")}
+            aria-pressed={owner === "partner"}
+          >
+            {partnerName}
+          </button>
+        </div>
       </div>
 
-      <textarea
-        className={styles.textarea}
-        placeholder="Paste your Wordle or Minute Cryptic share text here…"
-        value={rawText}
-        rows={5}
-        onChange={(event) => setRawText(event.target.value)}
-      />
-
-      <div className={styles.actions}>
+      <div className={styles.inputRow}>
+        <textarea
+          className={styles.textarea}
+          placeholder="Paste your result here…"
+          value={rawText}
+          rows={2}
+          onChange={(event) => setRawText(event.target.value)}
+        />
         <button type="button" className={styles.submitButton} disabled={!canSubmit} onClick={handleSubmit}>
           {isSubmitting ? (
-            <>
-              <SpinnerGapIcon size={18} className={styles.spinner} />
-              Adding…
-            </>
+            <SpinnerGapIcon size={18} className={styles.spinner} />
           ) : (
-            "Add score"
+            <>
+              <PlusIcon size={16} weight="bold" />
+              Add
+            </>
           )}
         </button>
-        {error && <p className={styles.error}>{error}</p>}
       </div>
-    </DashboardCard>
+
+      {error && <p className={styles.error}>{error}</p>}
+    </section>
   );
 }

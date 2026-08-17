@@ -3,6 +3,7 @@ import {
   ChatCircleIcon,
   GearIcon,
   HeartIcon,
+  ImagesSquareIcon,
   PuzzlePieceIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
@@ -21,6 +22,7 @@ const NAV_ITEMS: { view: View; label: string; icon: typeof SquaresFourIcon }[] =
   { view: "chat", label: "Chat", icon: ChatCircleIcon },
   { view: "calendar", label: "Calendar", icon: CalendarBlankIcon },
   { view: "couplePhoto", label: "Couple photo", icon: HeartIcon },
+  { view: "photoTimeline", label: "Photo timeline", icon: ImagesSquareIcon },
   { view: "games", label: "Games", icon: PuzzlePieceIcon },
 ];
 

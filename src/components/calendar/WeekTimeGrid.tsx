@@ -118,9 +118,17 @@ export function WeekTimeGrid({
   onEventChange,
 }: WeekTimeGridProps) {
   const daysRowRef = useRef<HTMLDivElement>(null);
+  const nowLineRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    nowLineRef.current?.scrollIntoView({ block: "center" });
+    // Runs once per mount: the parent remounts this component (via `key`) whenever
+    // the visible week changes, so this still re-centers on a fresh week.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyDrag = (next: DragState | null) => {
     dragRef.current = next;
@@ -397,7 +405,11 @@ export function WeekTimeGrid({
                 onContextMenu={(event) => handleColumnContextMenu(day, event)}
               >
                 {isToday && (
-                  <div className={styles.nowLine} style={{ top: `${(nowMinutes / 60) * HOUR_HEIGHT_REM}rem` }} />
+                  <div
+                    ref={nowLineRef}
+                    className={styles.nowLine}
+                    style={{ top: `${(nowMinutes / 60) * HOUR_HEIGHT_REM}rem` }}
+                  />
                 )}
 
                 {selectionPreview && (

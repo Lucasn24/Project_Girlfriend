@@ -29,19 +29,21 @@
   flex: 1 1 0%;
   overflow-y: auto;
   padding: 1rem 2.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+}
+
+.sections {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 1.25rem;
-  width: 100%;
-}
-
-.formWrap {
-  grid-column: 1 / -1;
 }
 
 @media (max-width: 900px) {
-  .main {
+  .sections {
     grid-template-columns: 1fr;
   }
 }

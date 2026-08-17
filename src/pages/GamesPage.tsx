@@ -15,18 +15,18 @@ export function GamesPage() {
       </header>
 
       <main className={`${styles.main} no-scrollbar`}>
-        <div className={styles.formWrap}>
-          <PasteScoreForm isSubmitting={isSubmitting} error={error} onSubmit={submit} />
-        </div>
+        <PasteScoreForm isSubmitting={isSubmitting} error={error} onSubmit={submit} />
 
-        {GAME_ORDER.map((game) => (
-          <GameSection
-            key={game}
-            game={game}
-            results={results.filter((result) => result.game === game)}
-            onDelete={remove}
-          />
-        ))}
+        <div className={styles.sections}>
+          {GAME_ORDER.map((game) => (
+            <GameSection
+              key={game}
+              game={game}
+              results={results.filter((result) => result.game === game)}
+              onDelete={remove}
+            />
+          ))}
+        </div>
       </main>
     </div>
   );

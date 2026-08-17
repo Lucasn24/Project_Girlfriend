@@ -1,0 +1,244 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, black 40%, transparent);
+  padding: 1rem;
+  animation: fade-up 0.15s ease;
+}
+
+.panel {
+  width: 100%;
+  max-width: 24rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--color-fg) 22%, transparent);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.5rem;
+}
+
+.panelTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.iconButton {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.iconButton:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-fg);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+.slot {
+  position: relative;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt);
+  padding: 0;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.slot:hover {
+  border-color: var(--color-primary);
+}
+
+.slotEmpty {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.slotImage {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.segmented {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt);
+  padding: 0.25rem;
+}
+
+.segment {
+  cursor: pointer;
+  flex: 1 1 0%;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.segment:hover {
+  color: var(--color-fg);
+}
+
+.segmentActive {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fieldLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-fg-muted);
+}
+
+.fieldInputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dateInput,
+.timeInput,
+.captionInput {
+  border-radius: 0.625rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  padding: 0.5rem 0.625rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-fg);
+}
+
+.dateInput {
+  flex: 1 1 auto;
+}
+
+.timeInput {
+  flex: 0 0 auto;
+}
+
+.captionInput {
+  width: 100%;
+}
+
+.dateInput:focus-visible,
+.timeInput:focus-visible,
+.captionInput:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-destructive);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.cancelButton {
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background: var(--color-surface);
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+  color: var(--color-fg);
+}
+
+.saveButton {
+  cursor: pointer;
+  border: none;
+  border-radius: 0.625rem;
+  background: var(--color-primary);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-surface);
+  transition: background-color 0.2s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.saveButton:disabled,
+.cancelButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

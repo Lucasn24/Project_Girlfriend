@@ -1,6 +1,8 @@
 import "dotenv/config";
+import { ZipArchive } from "archiver";
 import cors from "cors";
 import express from "express";
+import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { streamReply, type HistoryTurn } from "./gemini.js";
@@ -33,6 +35,16 @@ import {
   type GoogleEventPatch,
 } from "./googleCalendar.js";
 import { addGame, deleteGame, getGames, type GameOwner } from "./games.js";
+import {
+  ALLOWED_PHOTO_MIME_TYPES,
+  createPhoto,
+  deletePhoto,
+  getPhotosInRange,
+  originalFilePath,
+  updatePhoto,
+  type PhotoTimelineOwner,
+  type PhotoTimelinePatch,
+} from "./photoTimeline.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -41,6 +53,9 @@ app.use(cors());
 // 20mb to fit base64-encoded full-body photos for the couple-photo feature.
 app.use(express.json({ limit: "20mb" }));
 app.use("/couple-photo-images", express.static(path.join(__dirname, "data", "couple-photo")));
+app.use("/photo-timeline-images", express.static(path.join(__dirname, "data", "photo-timeline")));
+
+const photoUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 app.post("/api/chat", async (req, res) => {
   const start = performance.now();
@@ -515,6 +530,133 @@ app.delete("/api/games/:id", async (req, res) => {
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Failed to delete game result" });
+  }
+});
+
+function isPhotoOwner(value: unknown): value is PhotoTimelineOwner {
+  return value === "user" || value === "partner";
+}
+
+app.get("/api/photo-timeline/entries", async (req, res) => {
+  const range = parseRangeParams(req);
+  if (!range) {
+    res.status(400).json({ error: "start and end query params must be valid dates" });
+    return;
+  }
+
+  try {
+    const photos = await getPhotosInRange(range.start, range.end);
+    res.json({ photos });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to load photos" });
+  }
+});
+
+app.post("/api/photo-timeline/entries", photoUpload.single("photo"), async (req, res) => {
+  const file = req.file;
+  const { owner, timestamp, caption: captionRaw } = req.body ?? {};
+
+  if (!file || !ALLOWED_PHOTO_MIME_TYPES.has(file.mimetype)) {
+    res.status(400).json({ error: "photo must be a jpeg/png/webp file" });
+    return;
+  }
+  if (!isPhotoOwner(owner)) {
+    res.status(400).json({ error: "owner must be 'user' or 'partner'" });
+    return;
+  }
+  if (typeof timestamp !== "string" || Number.isNaN(new Date(timestamp).getTime())) {
+    res.status(400).json({ error: "timestamp must be a valid ISO date string" });
+    return;
+  }
+
+  const caption = typeof captionRaw === "string" && captionRaw.trim() ? captionRaw.trim().slice(0, 200) : undefined;
+
+  try {
+    const photo = await createPhoto({ owner, timestamp, caption, buffer: file.buffer, mimeType: file.mimetype });
+    res.status(201).json({ photo });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to save photo" });
+  }
+});
+
+app.put("/api/photo-timeline/entries/:id", async (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const patch: PhotoTimelinePatch = {};
+
+  if ("timestamp" in body) {
+    if (typeof body.timestamp !== "string" || Number.isNaN(new Date(body.timestamp).getTime())) {
+      res.status(400).json({ error: "timestamp must be a valid ISO date string" });
+      return;
+    }
+    patch.timestamp = body.timestamp;
+  }
+  if ("caption" in body) {
+    if (body.caption !== null && typeof body.caption !== "string") {
+      res.status(400).json({ error: "caption must be a string or null" });
+      return;
+    }
+    patch.caption = body.caption ? body.caption.trim().slice(0, 200) || undefined : undefined;
+  }
+
+  try {
+    const updated = await updatePhoto(req.params.id, patch);
+    if (!updated) {
+      res.status(404).json({ error: "Photo not found" });
+      return;
+    }
+    res.json({ photo: updated });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to update photo" });
+  }
+});
+
+app.delete("/api/photo-timeline/entries/:id", async (req, res) => {
+  try {
+    const removed = await deletePhoto(req.params.id);
+    if (!removed) {
+      res.status(404).json({ error: "Photo not found" });
+      return;
+    }
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to delete photo" });
+  }
+});
+
+app.get("/api/photo-timeline/export", async (req, res) => {
+  const range = parseRangeParams(req);
+  if (!range) {
+    res.status(400).json({ error: "start and end query params must be valid dates" });
+    return;
+  }
+
+  try {
+    const photos = await getPhotosInRange(range.start, range.end);
+    const filenameDate = range.start.toISOString().slice(0, 10);
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="photos-${filenameDate}.zip"`);
+
+    const archive = new ZipArchive({ zlib: { level: 9 } });
+    archive.on("error", (error: Error) => {
+      console.error("[photo-timeline] export failed:", error);
+      res.end();
+    });
+    archive.pipe(res);
+
+    photos.forEach((photo, index) => {
+      const ext = photo.originalFile.split(".").pop();
+      const safeTimestamp = photo.timestamp.replace(/[:.]/g, "-");
+      archive.file(originalFilePath(photo), { name: `${index + 1}-${photo.owner}-${safeTimestamp}.${ext}` });
+    });
+
+    await archive.finalize();
+  } catch (error) {
+    if (!res.headersSent) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to export photos" });
+    } else {
+      res.end();
+    }
   }
 });
 
