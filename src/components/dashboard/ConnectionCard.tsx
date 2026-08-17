@@ -1,6 +1,6 @@
 import { GlobeHemisphereWestIcon, MapPinIcon } from "@phosphor-icons/react";
 import { partnerName } from "../../data/thread";
-import { useConnection } from "../../hooks/useConnection";
+import { useConnection } from "../../hooks/connection/useConnection";
 import { DashboardCard } from "./DashboardCard";
 import styles from "./ConnectionCard.module.css";
 

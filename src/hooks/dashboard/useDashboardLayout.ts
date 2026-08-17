@@ -1,9 +1,9 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-export type DashboardCardId = "conversation" | "connection" | "agenda" | "couplePhoto";
+export type DashboardCardId = "conversation" | "connection" | "couplePhoto";
 
 const STORAGE_KEY = "tether:dashboard-layout";
-const DEFAULT_ORDER: DashboardCardId[] = ["conversation", "connection", "agenda", "couplePhoto"];
+const DEFAULT_ORDER: DashboardCardId[] = ["conversation", "connection", "couplePhoto"];
 
 function isCardId(value: unknown): value is DashboardCardId {
   return typeof value === "string" && (DEFAULT_ORDER as string[]).includes(value);

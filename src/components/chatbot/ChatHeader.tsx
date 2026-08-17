@@ -2,7 +2,7 @@ import { DotsThreeVerticalIcon, GlobeHemisphereWestIcon } from "@phosphor-icons/
 import { Avatar } from "./Avatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { partnerName } from "../../data/thread";
-import { useConnection } from "../../hooks/useConnection";
+import { useConnection } from "../../hooks/connection/useConnection";
 import styles from "./ChatHeader.module.css";
 
 export function ChatHeader() {

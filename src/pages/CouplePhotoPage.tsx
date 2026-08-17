@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { HeartIcon, SparkleIcon, SpinnerGapIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { partnerName } from "../data/thread";
-import { useCouplePhoto } from "../hooks/useCouplePhoto";
+import { useCouplePhoto } from "../hooks/couplePhoto/useCouplePhoto";
 import styles from "./CouplePhotoPage.module.css";
 
 function formatGeneratedAt(iso: string | null): string {

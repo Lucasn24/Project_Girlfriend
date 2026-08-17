@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "ac4676ae-d29d-44df-9030-91b0f6a41572",
+    "owner": "user",
+    "submittedAt": "2026-08-17T10:02:40.224Z",
+    "game": "wordle",
+    "puzzleDate": "2026-08-17",
+    "puzzleNumber": 1885,
+    "guesses": 5,
+    "hardMode": false,
+    "rawText": "Wordle 1,885 5/6\n\n🟩🟨⬛⬛⬛\n🟩🟩🟨⬛⬛\n🟩🟩🟩🟨⬛\n🟩🟩🟩⬛🟩\n🟩🟩🟩🟩🟩",
+    "gridEmoji": "🟩🟨⬛⬛⬛\n🟩🟩🟨⬛⬛\n🟩🟩🟩🟨⬛\n🟩🟩🟩⬛🟩\n🟩🟩🟩🟩🟩"
+  },
+  {
+    "id": "772bacf8-51de-4498-8fc1-ac1cb9e5d136",
+    "owner": "user",
+    "submittedAt": "2026-08-17T10:03:34.256Z",
+    "game": "minute-cryptic",
+    "puzzleDate": "2026-08-17",
+    "hints": 3,
+    "parDelta": 2,
+    "solverCount": 46073,
+    "rawText": "Minute Cryptic - 17 August, 2026\n\"Picasso's homeland is portrayed in his paintings\" (5)\n⚪️⚪️⚪️🟣🟣🟣🟣🟣\n🏋 3 hints – 2 over the community par (46,073 solvers so far).\nhttps://www.minutecryptic.com/?utm_source=share",
+    "gridEmoji": "⚪️⚪️⚪️🟣🟣🟣🟣🟣"
+  }
+]

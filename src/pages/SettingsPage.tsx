@@ -3,9 +3,9 @@ import { CalendarBlankIcon, MapPinIcon, MoonIcon, SunIcon, UserIcon } from "@pho
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { LOCATIONS } from "../data/locations";
 import { partnerName } from "../data/thread";
-import { useCalendarSync } from "../hooks/useCalendarSync";
-import { useGoogleCalendarSync } from "../hooks/useGoogleCalendarSync";
-import { useSettings } from "../hooks/useSettings";
+import { useCalendarSync } from "../hooks/calendar/useCalendarSync";
+import { useGoogleCalendarSync } from "../hooks/calendar/useGoogleCalendarSync";
+import { useSettings } from "../hooks/settings/useSettings";
 import type { CalendarOwner, CalendarStatus } from "../types";
 import styles from "./SettingsPage.module.css";
 

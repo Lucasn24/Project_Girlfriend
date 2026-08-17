@@ -6,7 +6,7 @@ import { CouplePhotoPage } from "./pages/CouplePhotoPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { GamesPage } from "./pages/GamesPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { useChat } from "./hooks/useChat";
+import { useChat } from "./hooks/chat/useChat";
 
 export type View = "dashboard" | "chat" | "calendar" | "couplePhoto" | "games" | "settings";
 

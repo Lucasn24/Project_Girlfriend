@@ -1,5 +1,5 @@
 import { HeartIcon } from "@phosphor-icons/react";
-import { useCouplePhoto } from "../../hooks/useCouplePhoto";
+import { useCouplePhoto } from "../../hooks/couplePhoto/useCouplePhoto";
 import { DashboardCard } from "./DashboardCard";
 import styles from "./CouplePhotoCard.module.css";
 

@@ -6,7 +6,7 @@ import { MessageBubble } from "../components/chatbot/MessageBubble";
 import { MessageComposer } from "../components/chatbot/MessageComposer";
 import { ThreadDivider } from "../components/chatbot/ThreadDivider";
 import { TypingIndicator } from "../components/chatbot/TypingIndicator";
-import type { useChat } from "../hooks/useChat";
+import type { useChat } from "../hooks/chat/useChat";
 import styles from "./ChatPage.module.css";
 
 interface ChatPageProps {

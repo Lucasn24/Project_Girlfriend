@@ -1,5 +1,5 @@
 import { MoonIcon, SunIcon } from "@phosphor-icons/react";
-import { useSettings } from "../../hooks/useSettings";
+import { useSettings } from "../../hooks/settings/useSettings";
 import styles from "./ThemeToggle.module.css";
 
 export function ThemeToggle() {

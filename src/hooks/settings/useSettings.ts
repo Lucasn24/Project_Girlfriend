@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import {
   DEFAULT_PARTNER_LOCATION_ID,
   DEFAULT_USER_LOCATION_ID,
-} from "../data/locations";
+} from "../../data/locations";
 
 export type Theme = "light" | "dark";
 

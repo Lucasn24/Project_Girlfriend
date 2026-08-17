@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { GameOwner, GameResult } from "../types";
+import type { GameOwner, GameResult } from "../../types";
 
 export function useGames() {
   const [results, setResults] = useState<GameResult[]>([]);

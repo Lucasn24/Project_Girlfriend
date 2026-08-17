@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CalendarEvent, CalendarOwner } from "../types";
+import type { CalendarEvent, CalendarOwner } from "../../types";
 
 const DEFAULT_POLL_MS = 2 * 60 * 1000;
 

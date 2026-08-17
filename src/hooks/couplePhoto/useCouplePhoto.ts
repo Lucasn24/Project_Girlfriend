@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CouplePhotoState } from "../types";
+import type { CouplePhotoState } from "../../types";
 
 const EMPTY_STATE: CouplePhotoState = {
   userPhotoUrl: null,

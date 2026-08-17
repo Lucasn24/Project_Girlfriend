@@ -1,7 +1,7 @@
-import { getLocation, type Location } from "../data/locations";
-import { haversineKm } from "../utils/geo";
+import { getLocation, type Location } from "../../data/locations";
+import { haversineKm } from "../../utils/geo";
 import { useNow } from "./useNow";
-import { useSettings } from "./useSettings";
+import { useSettings } from "../settings/useSettings";
 
 const SLEEP_START_HOUR = 23;
 const SLEEP_END_HOUR = 7;

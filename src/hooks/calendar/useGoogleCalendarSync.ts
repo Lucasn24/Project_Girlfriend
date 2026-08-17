@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CalendarOwner } from "../types";
+import type { CalendarOwner } from "../../types";
 
 interface GoogleCalendarStatus {
   configured: boolean;

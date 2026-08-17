@@ -26,9 +26,18 @@
 }
 
 .main {
+  display: flex;
   flex: 1 1 0%;
-  overflow-y: auto;
+  min-height: 0;
+  align-items: stretch;
+  gap: 1.25rem;
   padding: 1rem 2.5rem 2.5rem;
+}
+
+.gridArea {
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow-y: auto;
 }
 
 .grid {
@@ -45,6 +54,22 @@
 
 .dragging {
   opacity: 0.4;
+}
+
+.sidebar {
+  flex: 0 0 22rem;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .main {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: 0 0 28rem;
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { thread as initialThread } from "../data/thread";
-import type { ChatMessage, ThreadItem } from "../types";
+import { thread as initialThread } from "../../data/thread";
+import type { ChatMessage, ThreadItem } from "../../types";
 
 let nextId = 1000;
 

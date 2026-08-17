@@ -1,8 +1,8 @@
-import { TrashIcon, TrophyIcon } from "@phosphor-icons/react";
-import { DashboardCard } from "../dashboard/DashboardCard";
+import type { CSSProperties } from "react";
+import { FireIcon, TrashIcon } from "@phosphor-icons/react";
 import { GAME_DEFINITIONS } from "../../data/games";
 import { partnerName } from "../../data/thread";
-import type { GameResult } from "../../types";
+import type { GameOwner, GameResult } from "../../types";
 import styles from "./GameSection.module.css";
 
 interface GameSectionProps {
@@ -11,8 +11,8 @@ interface GameSectionProps {
   onDelete: (id: string) => void;
 }
 
-function rank(result: GameResult): number | null {
-  return result.game === "wordle" ? (result.guesses ?? 7) : result.hints;
+function rank(result: GameResult): number {
+  return result.game === "wordle" ? (result.guesses ?? 7) : (result.hints ?? 99);
 }
 
 function summaryLabel(result: GameResult): string {
@@ -35,6 +35,83 @@ function formatPuzzleDate(puzzleDate: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+interface HeadToHeadStats {
+  userWins: number;
+  partnerWins: number;
+  ties: number;
+  totalComparable: number;
+  userWinRate: number | null;
+  partnerWinRate: number | null;
+  streakOwner: GameOwner | null;
+  streakLength: number;
+  userAvg: number | null;
+  partnerAvg: number | null;
+}
+
+function computeStats(byDate: Map<string, { user?: GameResult; partner?: GameResult }>, datesDesc: string[]): HeadToHeadStats {
+  let userWins = 0;
+  let partnerWins = 0;
+  let ties = 0;
+  let userTotal = 0;
+  let userCount = 0;
+  let partnerTotal = 0;
+  let partnerCount = 0;
+  let streakOwner: GameOwner | null = null;
+  let streakLength = 0;
+  let streakBroken = false;
+
+  for (const date of datesDesc) {
+    const entry = byDate.get(date)!;
+    const userRank = entry.user ? rank(entry.user) : null;
+    const partnerRank = entry.partner ? rank(entry.partner) : null;
+
+    if (userRank !== null) {
+      userTotal += userRank;
+      userCount += 1;
+    }
+    if (partnerRank !== null) {
+      partnerTotal += partnerRank;
+      partnerCount += 1;
+    }
+
+    if (userRank !== null && partnerRank !== null) {
+      const dayWinner: GameOwner | "tie" =
+        userRank < partnerRank ? "user" : partnerRank < userRank ? "partner" : "tie";
+
+      if (dayWinner === "user") userWins += 1;
+      else if (dayWinner === "partner") partnerWins += 1;
+      else ties += 1;
+
+      if (!streakBroken) {
+        if (dayWinner === "tie") {
+          streakBroken = true;
+        } else if (streakOwner === null) {
+          streakOwner = dayWinner;
+          streakLength = 1;
+        } else if (streakOwner === dayWinner) {
+          streakLength += 1;
+        } else {
+          streakBroken = true;
+        }
+      }
+    }
+  }
+
+  const totalComparable = userWins + partnerWins + ties;
+  return {
+    userWins,
+    partnerWins,
+    ties,
+    totalComparable,
+    userWinRate: totalComparable > 0 ? Math.round((userWins / totalComparable) * 100) : null,
+    partnerWinRate: totalComparable > 0 ? Math.round((partnerWins / totalComparable) * 100) : null,
+    streakOwner: streakLength > 0 ? streakOwner : null,
+    streakLength,
+    userAvg: userCount > 0 ? userTotal / userCount : null,
+    partnerAvg: partnerCount > 0 ? partnerTotal / partnerCount : null,
+  };
 }
 
 interface ScoreCellProps {
@@ -66,8 +143,34 @@ function ScoreCell({ result, isWinner, onDelete }: ScoreCellProps) {
   );
 }
 
+function WordleMark() {
+  const cells = ["c1", "c2", "c3", "c4"];
+  return (
+    <div className={styles.wordleMark} aria-hidden="true">
+      {cells.map((cell) => (
+        <span key={cell} className={styles.wordleMarkCell} />
+      ))}
+    </div>
+  );
+}
+
+function CrypticMark() {
+  const pips = ["p1", "p2", "p3", "p4", "p5", "p6"];
+  return (
+    <div className={styles.crypticMark} aria-hidden="true">
+      {pips.map((pip, index) => (
+        <span
+          key={pip}
+          className={`${styles.crypticMarkPip} ${index < 2 ? styles.crypticMarkPipFilled : ""}`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function GameSection({ game, results, onDelete }: GameSectionProps) {
   const definition = GAME_DEFINITIONS[game];
+  const isWordle = game === "wordle";
 
   const byDate = new Map<string, { user?: GameResult; partner?: GameResult }>();
   for (const result of results) {
@@ -76,9 +179,61 @@ export function GameSection({ game, results, onDelete }: GameSectionProps) {
     byDate.set(result.puzzleDate, entry);
   }
   const dates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
+  const stats = computeStats(byDate, dates);
 
   return (
-    <DashboardCard icon={<TrophyIcon size={16} weight="fill" />} title={definition.label}>
+    <section
+      className={`${styles.card} ${isWordle ? styles.cardWordle : styles.cardCryptic}`}
+      style={{ "--accent": definition.accent } as CSSProperties}
+    >
+      <header className={styles.header}>
+        {isWordle ? <WordleMark /> : <CrypticMark />}
+        <div className={styles.headerText}>
+          <h2 className={styles.title}>{definition.label}</h2>
+          <p className={styles.tagline}>{isWordle ? "Daily word puzzle" : "Daily cryptic clue"}</p>
+        </div>
+      </header>
+
+      {stats.totalComparable > 0 ? (
+        <div className={styles.statsRow}>
+          <div className={styles.statTile}>
+            <span className={styles.statLabel}>Head-to-head</span>
+            <span className={styles.statValue}>
+              {stats.userWins}–{stats.partnerWins}
+              {stats.ties > 0 ? ` (${stats.ties} tie${stats.ties === 1 ? "" : "s"})` : ""}
+            </span>
+          </div>
+          <div className={styles.statTile}>
+            <span className={styles.statLabel}>Win rate</span>
+            <span className={styles.statValue}>
+              {stats.userWinRate}% / {stats.partnerWinRate}%
+            </span>
+          </div>
+          <div className={styles.statTile}>
+            <span className={styles.statLabel}>Streak</span>
+            <span className={styles.statValue}>
+              {stats.streakOwner ? (
+                <>
+                  <FireIcon size={12} weight="fill" className={styles.streakIcon} />
+                  {stats.streakOwner === "user" ? "You" : partnerName} · {stats.streakLength}
+                </>
+              ) : (
+                "—"
+              )}
+            </span>
+          </div>
+          <div className={styles.statTile}>
+            <span className={styles.statLabel}>Avg {isWordle ? "guesses" : "hints"}</span>
+            <span className={styles.statValue}>
+              {stats.userAvg !== null ? stats.userAvg.toFixed(1) : "—"} /{" "}
+              {stats.partnerAvg !== null ? stats.partnerAvg.toFixed(1) : "—"}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className={styles.statsEmpty}>Play the same day as {partnerName} to see head-to-head stats.</p>
+      )}
+
       {dates.length === 0 ? (
         <p className={styles.empty}>No {definition.label} scores yet.</p>
       ) : (
@@ -112,6 +267,6 @@ export function GameSection({ game, results, onDelete }: GameSectionProps) {
           })}
         </div>
       )}
-    </DashboardCard>
+    </section>
   );
 }

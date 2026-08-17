@@ -1,7 +1,7 @@
 import { GameSection } from "../components/games/GameSection";
 import { PasteScoreForm } from "../components/games/PasteScoreForm";
 import { GAME_ORDER } from "../data/games";
-import { useGames } from "../hooks/useGames";
+import { useGames } from "../hooks/games/useGames";
 import styles from "./GamesPage.module.css";
 
 export function GamesPage() {
@@ -15,7 +15,9 @@ export function GamesPage() {
       </header>
 
       <main className={`${styles.main} no-scrollbar`}>
-        <PasteScoreForm isSubmitting={isSubmitting} error={error} onSubmit={submit} />
+        <div className={styles.formWrap}>
+          <PasteScoreForm isSubmitting={isSubmitting} error={error} onSubmit={submit} />
+        </div>
 
         {GAME_ORDER.map((game) => (
           <GameSection

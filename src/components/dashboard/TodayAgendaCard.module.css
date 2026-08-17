@@ -4,55 +4,188 @@
   color: var(--color-fg-muted);
 }
 
-.list {
+.filterRow {
   display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 14rem;
-  overflow-y: auto;
-}
-
-.item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.dot {
-  margin-top: 0.375rem;
-  height: 0.5rem;
-  width: 0.5rem;
   flex-shrink: 0;
-  border-radius: 9999px;
+  gap: 0.25rem;
+  border-radius: 0.625rem;
+  background: var(--color-surface-alt);
+  padding: 0.1875rem;
 }
 
-.dotUser {
-  background: var(--color-primary);
-}
-
-.dotPartner {
-  background: var(--color-secondary);
-}
-
-.itemBody {
-  min-width: 0;
-}
-
-.itemTitle {
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.875rem;
+.filterButton {
+  flex: 1 1 0%;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.4375rem;
+  background: transparent;
+  padding: 0.3125rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   font-weight: 500;
+  color: var(--color-fg-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.filterButton:hover {
   color: var(--color-fg);
 }
 
-.itemMeta {
-  margin: 0.125rem 0 0;
-  font-size: 0.75rem;
+.filterActive {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+
+.timeline {
+  display: flex;
+  flex: 1 1 0%;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.allDayRow {
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.allDayGutter {
+  flex: 0 0 2.75rem;
+  border-right: 1px solid var(--color-border);
+}
+
+.allDayCell {
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.1875rem;
+  padding: 0.25rem;
+}
+
+.allDayCell + .allDayCell {
+  border-left: 1px solid var(--color-border);
+}
+
+.allDayPill {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.scrollArea {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.hourGrid {
+  display: flex;
+}
+
+.hourLabels {
+  display: flex;
+  flex: 0 0 2.75rem;
+  flex-direction: column;
+}
+
+.hourLabelCell {
+  position: relative;
+}
+
+.hourLabelText {
+  position: absolute;
+  top: -0.5em;
+  right: 0.375rem;
+  font-size: 0.625rem;
   color: var(--color-fg-muted);
+}
+
+.columns {
+  position: relative;
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+.column {
+  position: relative;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.column + .column {
+  border-left: 1px solid var(--color-border);
+}
+
+.nowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid var(--color-primary);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nowLine::before {
+  content: "";
+  position: absolute;
+  left: -0.1875rem;
+  top: -0.1875rem;
+  height: 0.375rem;
+  width: 0.375rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+}
+
+.timedEvent {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  overflow: hidden;
+  border-radius: 0.3125rem;
+  padding: 0.125rem 0.3125rem;
+  cursor: pointer;
+}
+
+.timedEventTime {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.timedEventTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.eventUser {
+  background: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface));
+  color: var(--color-primary-hover);
+  border-left: 2px solid var(--color-primary);
+}
+
+.eventPartner {
+  background: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
+  color: var(--color-secondary);
+  border-left: 2px solid var(--color-secondary);
 }

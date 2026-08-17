@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CalendarOwner, CalendarStatus } from "../types";
+import type { CalendarOwner, CalendarStatus } from "../../types";
 
 type StatusMap = Record<CalendarOwner, CalendarStatus>;
 

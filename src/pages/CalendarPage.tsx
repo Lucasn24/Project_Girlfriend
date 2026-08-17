@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { ContextMenu, type ContextMenuItem } from "../components/calendar/ContextMenu";
 import { EventModal, type EventModalSaveData } from "../components/calendar/EventModal";
 import { WeekTimeGrid } from "../components/calendar/WeekTimeGrid";
 import { getLocation } from "../data/locations";
 import { partnerName } from "../data/thread";
-import { useCalendarEvents } from "../hooks/useCalendarEvents";
-import { useSettings } from "../hooks/useSettings";
+import { useCalendarEvents } from "../hooks/calendar/useCalendarEvents";
+import { useSettings } from "../hooks/settings/useSettings";
 import type { CalendarEvent } from "../types";
 import {
   addDays,
@@ -29,6 +29,8 @@ type ModalState = { mode: "create"; start: Date; end: Date; allDay: boolean } | 
 type ContextMenuState = { x: number; y: number; items: ContextMenuItem[] };
 
 const MONTH_VISIBLE_EVENT_LIMIT = 3;
+const MONTH_WHEEL_COOLDOWN_MS = 400;
+const MONTH_WHEEL_THRESHOLD = 10;
 
 function formatRangeLabel(mode: CalendarViewMode, cursor: Date, timeZone: string): string {
   if (mode === "month") {
@@ -90,6 +92,20 @@ export function CalendarPage() {
   const goNext = () =>
     setCursor((prev) => (mode === "week" ? addDays(prev, 7, timeZone) : addMonths(prev, 1, timeZone)));
   const goToday = () => setCursor(new Date());
+
+  const monthWheelLockedRef = useRef(false);
+
+  const handleMonthWheel = (event: React.WheelEvent<HTMLElement>) => {
+    if (mode !== "month") return;
+    event.preventDefault();
+    if (monthWheelLockedRef.current || Math.abs(event.deltaY) < MONTH_WHEEL_THRESHOLD) return;
+    monthWheelLockedRef.current = true;
+    if (event.deltaY > 0) goNext();
+    else goPrev();
+    window.setTimeout(() => {
+      monthWheelLockedRef.current = false;
+    }, MONTH_WHEEL_COOLDOWN_MS);
+  };
 
   const today = new Date();
 
@@ -271,7 +287,7 @@ export function CalendarPage() {
         {error && <span className={styles.error}>{error}</span>}
       </div>
 
-      <main className={`${styles.main} no-scrollbar`}>
+      <main className={`${styles.main} no-scrollbar`} onWheel={handleMonthWheel}>
         {mode === "week" ? (
           <WeekTimeGrid
             key={rangeStart.toISOString()}
