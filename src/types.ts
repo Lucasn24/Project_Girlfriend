@@ -44,6 +44,8 @@ export type ThreadItem = ChatMessage | Divider;
 
 export type CalendarOwner = "user" | "partner";
 
+export type CalendarEventSource = "local" | "ical" | "google";
+
 export interface CalendarEvent {
   id: string;
   owner: CalendarOwner;
@@ -52,6 +54,7 @@ export interface CalendarEvent {
   end: string;
   allDay: boolean;
   location?: string;
+  source: CalendarEventSource;
 }
 
 export interface CalendarStatus {
@@ -66,3 +69,30 @@ export interface CouplePhotoState {
   generatedUrl: string | null;
   generatedAt: string | null;
 }
+
+export type GameOwner = "user" | "partner";
+
+interface GameResultBase {
+  id: string;
+  owner: GameOwner;
+  puzzleDate: string;
+  submittedAt: string;
+  rawText: string;
+  gridEmoji: string;
+}
+
+export interface WordleResult extends GameResultBase {
+  game: "wordle";
+  puzzleNumber: number | null;
+  guesses: number | null;
+  hardMode: boolean;
+}
+
+export interface MinuteCrypticResult extends GameResultBase {
+  game: "minute-cryptic";
+  hints: number | null;
+  parDelta: number | null;
+  solverCount: number | null;
+}
+
+export type GameResult = WordleResult | MinuteCrypticResult;

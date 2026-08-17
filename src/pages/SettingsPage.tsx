@@ -4,6 +4,7 @@ import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { LOCATIONS } from "../data/locations";
 import { partnerName } from "../data/thread";
 import { useCalendarSync } from "../hooks/useCalendarSync";
+import { useGoogleCalendarSync } from "../hooks/useGoogleCalendarSync";
 import { useSettings } from "../hooks/useSettings";
 import type { CalendarOwner, CalendarStatus } from "../types";
 import styles from "./SettingsPage.module.css";
@@ -25,9 +26,26 @@ interface CalendarSyncFieldProps {
   status: CalendarStatus;
   isSaving: boolean;
   onSave: (owner: CalendarOwner, url: string) => void;
+  googleConfigured: boolean;
+  googleConnected: boolean;
+  isConnectingGoogle: boolean;
+  onConnectGoogle: (owner: CalendarOwner) => void;
+  onDisconnectGoogle: (owner: CalendarOwner) => void;
 }
 
-function CalendarSyncField({ owner, title, possessive, status, isSaving, onSave }: CalendarSyncFieldProps) {
+function CalendarSyncField({
+  owner,
+  title,
+  possessive,
+  status,
+  isSaving,
+  onSave,
+  googleConfigured,
+  googleConnected,
+  isConnectingGoogle,
+  onConnectGoogle,
+  onDisconnectGoogle,
+}: CalendarSyncFieldProps) {
   const [value, setValue] = useState("");
 
   const handleSave = () => {
@@ -37,44 +55,78 @@ function CalendarSyncField({ owner, title, possessive, status, isSaving, onSave 
 
   return (
     <DashboardCard icon={<CalendarBlankIcon size={16} weight="fill" />} title={title}>
-      <p className={styles.helpText}>
-        In Google Calendar, go to Settings → {possessive} calendar → "Secret address in iCal format", copy it, and
-        paste it below.
-      </p>
-      <div className={styles.calendarField}>
-        <input
-          type="text"
-          className={styles.select}
-          placeholder={status.configured ? "Connected — paste a new URL to replace it" : "Paste secret iCal URL"}
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-        />
+      <div className={styles.googleSyncRow}>
+        <div>
+          <p className={styles.helpText} style={{ margin: 0 }}>
+            {googleConnected
+              ? "Connected — events you add, edit, or drag here push straight to this Google Calendar, and its events show up here too."
+              : "Connect for two-way sync: create, edit, and drag events here and they'll appear on the real calendar."}
+          </p>
+        </div>
         <button
           type="button"
-          className={styles.saveButton}
-          onClick={handleSave}
-          disabled={isSaving || !value.trim()}
+          className={googleConnected ? styles.removeButton : styles.saveButton}
+          onClick={() => (googleConnected ? onDisconnectGoogle(owner) : onConnectGoogle(owner))}
+          disabled={!googleConfigured || isConnectingGoogle}
         >
-          {isSaving ? "Saving…" : "Save"}
+          {isConnectingGoogle ? "Connecting…" : googleConnected ? "Disconnect" : "Connect Google Calendar"}
         </button>
       </div>
-      <div className={styles.calendarStatusRow}>
-        <span className={`${styles.statusDot} ${status.configured ? styles.statusDotOk : ""}`} aria-hidden="true" />
-        <span>
-          {status.configured ? formatLastSynced(status.lastSyncedAt) : "Not connected"}
-          {status.error ? ` · ${status.error}` : ""}
-        </span>
-        {status.configured && (
-          <button
-            type="button"
-            className={styles.removeButton}
-            onClick={() => onSave(owner, "")}
-            disabled={isSaving}
-          >
-            Remove
-          </button>
-        )}
-      </div>
+      {!googleConfigured && (
+        <p className={styles.helpText}>
+          Google Calendar isn't configured on the server yet — add GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI to .env.
+        </p>
+      )}
+
+      {googleConnected ? (
+        <p className={styles.helpText}>
+          This calendar is synced via Google — the iCal link below is unused while connected.
+        </p>
+      ) : (
+        <>
+          <p className={styles.helpText}>
+            Or, for one-way (read-only) import: in Google Calendar, go to Settings → {possessive} calendar → "Secret
+            address in iCal format", copy it, and paste it below.
+          </p>
+          <div className={styles.calendarField}>
+            <input
+              type="text"
+              className={styles.select}
+              placeholder={status.configured ? "Connected — paste a new URL to replace it" : "Paste secret iCal URL"}
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+            />
+            <button
+              type="button"
+              className={styles.saveButton}
+              onClick={handleSave}
+              disabled={isSaving || !value.trim()}
+            >
+              {isSaving ? "Saving…" : "Save"}
+            </button>
+          </div>
+          <div className={styles.calendarStatusRow}>
+            <span
+              className={`${styles.statusDot} ${status.configured ? styles.statusDotOk : ""}`}
+              aria-hidden="true"
+            />
+            <span>
+              {status.configured ? formatLastSynced(status.lastSyncedAt) : "Not connected"}
+              {status.error ? ` · ${status.error}` : ""}
+            </span>
+            {status.configured && (
+              <button
+                type="button"
+                className={styles.removeButton}
+                onClick={() => onSave(owner, "")}
+                disabled={isSaving}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </DashboardCard>
   );
 }
@@ -83,6 +135,8 @@ export function SettingsPage() {
   const { userLocationId, partnerLocationId, theme, setUserLocationId, setPartnerLocationId, setTheme } =
     useSettings();
   const { status, savingOwner, setCalendarUrl } = useCalendarSync();
+  const { status: googleStatus, connectingOwner, connect: connectGoogle, disconnect: disconnectGoogle } =
+    useGoogleCalendarSync();
 
   return (
     <div className={styles.page}>
@@ -151,6 +205,11 @@ export function SettingsPage() {
             status={status.user}
             isSaving={savingOwner === "user"}
             onSave={setCalendarUrl}
+            googleConfigured={googleStatus.configured}
+            googleConnected={googleStatus.user.connected}
+            isConnectingGoogle={connectingOwner === "user"}
+            onConnectGoogle={connectGoogle}
+            onDisconnectGoogle={disconnectGoogle}
           />
 
           <CalendarSyncField
@@ -160,6 +219,11 @@ export function SettingsPage() {
             status={status.partner}
             isSaving={savingOwner === "partner"}
             onSave={setCalendarUrl}
+            googleConfigured={googleStatus.configured}
+            googleConnected={googleStatus.partner.connected}
+            isConnectingGoogle={connectingOwner === "partner"}
+            onConnectGoogle={connectGoogle}
+            onDisconnectGoogle={disconnectGoogle}
           />
         </div>
       </main>

@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { ContextMenu, type ContextMenuItem } from "../components/calendar/ContextMenu";
+import { EventModal, type EventModalSaveData } from "../components/calendar/EventModal";
 import { WeekTimeGrid } from "../components/calendar/WeekTimeGrid";
 import { getLocation } from "../data/locations";
 import { partnerName } from "../data/thread";
@@ -21,6 +23,10 @@ import {
 import styles from "./CalendarPage.module.css";
 
 type CalendarViewMode = "week" | "month";
+
+type ModalState = { mode: "create"; start: Date; end: Date; allDay: boolean } | { mode: "edit"; event: CalendarEvent };
+
+type ContextMenuState = { x: number; y: number; items: ContextMenuItem[] };
 
 const MONTH_VISIBLE_EVENT_LIMIT = 3;
 
@@ -52,7 +58,14 @@ export function CalendarPage() {
     mode === "week" ? startOfWeek(cursor, timeZone) : startOfWeek(startOfMonth(cursor, timeZone), timeZone);
   const rangeEnd = mode === "week" ? endOfWeek(cursor, timeZone) : endOfWeek(endOfMonth(cursor, timeZone), timeZone);
 
-  const { events, error } = useCalendarEvents(rangeStart, rangeEnd);
+  const { events, error, mutationError, createEvent, updateEvent, deleteEvent } = useCalendarEvents(
+    rangeStart,
+    rangeEnd,
+  );
+
+  const [modalState, setModalState] = useState<ModalState | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const days = useMemo(() => daysBetween(rangeStart, rangeEnd, timeZone), [rangeStart, rangeEnd, timeZone]);
 
@@ -79,6 +92,118 @@ export function CalendarPage() {
   const goToday = () => setCursor(new Date());
 
   const today = new Date();
+
+  const openCreateModal = (start: Date, end: Date, allDay: boolean) => {
+    setContextMenu(null);
+    setModalState({ mode: "create", start, end, allDay });
+  };
+
+  const openEditModal = (event: CalendarEvent) => {
+    setContextMenu(null);
+    setModalState({ mode: "edit", event });
+  };
+
+  const closeModal = () => setModalState(null);
+
+  const handleSave = async (data: EventModalSaveData) => {
+    setIsSaving(true);
+    const ok =
+      modalState?.mode === "edit"
+        ? await updateEvent(modalState.event.id, { ...data, timeZone })
+        : await createEvent({ ...data, timeZone });
+    setIsSaving(false);
+    if (ok) closeModal();
+  };
+
+  const handleDeleteFromModal = async () => {
+    if (modalState?.mode !== "edit") return;
+    setIsSaving(true);
+    const ok = await deleteEvent(modalState.event.id);
+    setIsSaving(false);
+    if (ok) closeModal();
+  };
+
+  const handleDeleteById = async (id: string) => {
+    await deleteEvent(id);
+  };
+
+  const handleDuplicate = async (event: CalendarEvent) => {
+    await createEvent({
+      owner: event.owner,
+      title: `${event.title} (copy)`,
+      start: event.start,
+      end: event.end,
+      allDay: event.allDay,
+      location: event.location,
+      timeZone,
+    });
+  };
+
+  const handleEventChange = async (event: CalendarEvent, start: Date, end: Date) => {
+    if (event.source === "ical") return;
+    await updateEvent(event.id, {
+      start: start.toISOString(),
+      end: end.toISOString(),
+      allDay: event.allDay,
+      timeZone,
+    });
+  };
+
+  const openEventContextMenu = (event: CalendarEvent, x: number, y: number) => {
+    const items: ContextMenuItem[] =
+      event.source !== "ical"
+        ? [
+            { label: "Edit event", onSelect: () => openEditModal(event) },
+            { label: "Duplicate event", onSelect: () => handleDuplicate(event) },
+            { label: "Delete event", danger: true, onSelect: () => handleDeleteById(event.id) },
+          ]
+        : [{ label: "View details", onSelect: () => openEditModal(event) }];
+    setContextMenu({ x, y, items });
+  };
+
+  const openSlotContextMenu = (start: Date, end: Date, allDay: boolean, x: number, y: number) => {
+    setContextMenu({
+      x,
+      y,
+      items: [{ label: "New event", onSelect: () => openCreateModal(start, end, allDay) }],
+    });
+  };
+
+  const handleMonthDayClick = (day: Date) => {
+    openCreateModal(day, addDays(day, 1, timeZone), true);
+  };
+
+  const handleMonthDayContextMenu = (day: Date, x: number, y: number) => {
+    openSlotContextMenu(day, addDays(day, 1, timeZone), true, x, y);
+  };
+
+  const handleMonthDragStart = (event: CalendarEvent, dragEvent: React.DragEvent) => {
+    if (event.source === "ical") {
+      dragEvent.preventDefault();
+      return;
+    }
+    dragEvent.dataTransfer.setData("text/plain", event.id);
+    dragEvent.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleMonthDrop = async (day: Date, dragEvent: React.DragEvent) => {
+    dragEvent.preventDefault();
+    const id = dragEvent.dataTransfer.getData("text/plain");
+    const dragged = events.find((event) => event.id === id);
+    if (!dragged || dragged.source === "ical") return;
+
+    const originalStart = new Date(dragged.start);
+    const originalEnd = new Date(dragged.end);
+    const dayDeltaMs = startOfDay(day, timeZone).getTime() - startOfDay(originalStart, timeZone).getTime();
+    if (dayDeltaMs === 0) return;
+
+    await updateEvent(dragged.id, {
+      start: new Date(originalStart.getTime() + dayDeltaMs).toISOString(),
+      end: new Date(originalEnd.getTime() + dayDeltaMs).toISOString(),
+      allDay: dragged.allDay,
+      timeZone,
+    });
+  };
 
   return (
     <div className={styles.page}>
@@ -119,6 +244,18 @@ export function CalendarPage() {
               <CaretRightIcon size={16} weight="bold" />
             </button>
           </div>
+
+          <button
+            type="button"
+            className={styles.newEventButton}
+            onClick={() => {
+              const start = new Date();
+              start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15, 0, 0);
+              openCreateModal(start, new Date(start.getTime() + 60 * 60_000), false);
+            }}
+          >
+            New event
+          </button>
         </div>
       </header>
 
@@ -142,6 +279,14 @@ export function CalendarPage() {
             eventsByDay={eventsByDay}
             today={today}
             timeZone={timeZone}
+            onCreateRequest={openCreateModal}
+            onEventClick={openEditModal}
+            onEventContextMenu={openEventContextMenu}
+            onSlotContextMenu={(start, allDay, x, y) => {
+              const end = allDay ? addDays(start, 1, timeZone) : new Date(start.getTime() + 60 * 60_000);
+              openSlotContextMenu(start, end, allDay, x, y);
+            }}
+            onEventChange={handleEventChange}
           />
         ) : (
           <div className={styles.monthGrid}>
@@ -157,6 +302,13 @@ export function CalendarPage() {
                   className={`${styles.dayCell} ${isToday ? styles.dayCellToday : ""} ${
                     !isCurrentMonth ? styles.dayCellMuted : ""
                   }`}
+                  onClick={() => handleMonthDayClick(day)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    handleMonthDayContextMenu(day, event.clientX, event.clientY);
+                  }}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => handleMonthDrop(day, event)}
                 >
                   <div className={styles.dayHeader}>
                     <span className={styles.dayNumber}>{day.toLocaleDateString([], { day: "numeric", timeZone })}</span>
@@ -169,6 +321,17 @@ export function CalendarPage() {
                           event.owner === "user" ? styles.eventPillUser : styles.eventPillPartner
                         }`}
                         title={event.title}
+                        draggable={event.source !== "ical"}
+                        onDragStart={(dragEvent) => handleMonthDragStart(event, dragEvent)}
+                        onClick={(clickEvent) => {
+                          clickEvent.stopPropagation();
+                          openEditModal(event);
+                        }}
+                        onContextMenu={(contextEvent) => {
+                          contextEvent.preventDefault();
+                          contextEvent.stopPropagation();
+                          openEventContextMenu(event, contextEvent.clientX, contextEvent.clientY);
+                        }}
                       >
                         <span className={styles.eventTitle}>{event.title}</span>
                       </div>
@@ -183,6 +346,30 @@ export function CalendarPage() {
           </div>
         )}
       </main>
+
+      {modalState && (
+        <EventModal
+          mode={modalState.mode}
+          initialTitle={modalState.mode === "edit" ? modalState.event.title : ""}
+          initialOwner={modalState.mode === "edit" ? modalState.event.owner : "user"}
+          initialStart={modalState.mode === "edit" ? new Date(modalState.event.start) : modalState.start}
+          initialEnd={modalState.mode === "edit" ? new Date(modalState.event.end) : modalState.end}
+          initialAllDay={modalState.mode === "edit" ? modalState.event.allDay : modalState.allDay}
+          initialLocation={modalState.mode === "edit" ? modalState.event.location ?? "" : ""}
+          timeZone={timeZone}
+          canDelete={modalState.mode === "edit" && modalState.event.source !== "ical"}
+          readOnly={modalState.mode === "edit" && modalState.event.source === "ical"}
+          isSaving={isSaving}
+          error={mutationError}
+          onSave={handleSave}
+          onDelete={modalState.mode === "edit" ? handleDeleteFromModal : undefined}
+          onClose={closeModal}
+        />
+      )}
+
+      {contextMenu && (
+        <ContextMenu x={contextMenu.x} y={contextMenu.y} items={contextMenu.items} onClose={() => setContextMenu(null)} />
+      )}
     </div>
   );
 }

@@ -35,6 +35,10 @@ src/data/result.json
 server/data/reply-pairs.json
 server/data/reply-index.json
 server/data/calendar-config.json
+server/data/calendar-events.json
+
+# OAuth refresh/access tokens — as sensitive as a password, never commit
+server/data/google-calendar-tokens.json
 
 # Uploaded/generated couple photos — real photos of both people, never commit
 server/data/couple-photo/

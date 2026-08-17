@@ -13,6 +13,7 @@ export interface CalendarEvent {
   end: string;
   allDay: boolean;
   location?: string;
+  source: "ical";
 }
 
 export interface CalendarStatus {
@@ -141,6 +142,7 @@ export function getEvents(start: Date, end: Date): CalendarEvent[] {
           end: instance.isFullDay ? toNoonUtc(instance.end) : instance.end.toISOString(),
           allDay: instance.isFullDay,
           location: event.location ? textValue(event.location) : undefined,
+          source: "ical",
         });
       }
     }

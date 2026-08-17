@@ -1,0 +1,109 @@
+.empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.columnLabels {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 1fr;
+  gap: 0.625rem;
+  padding: 0 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.columnLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 1fr;
+  gap: 0.625rem;
+  align-items: start;
+  padding: 0.625rem 0.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.row:first-child {
+  border-top: none;
+}
+
+.date {
+  padding-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+}
+
+.cell {
+  border-radius: 0.625rem;
+  background: var(--color-surface-alt);
+  padding: 0.5rem 0.625rem;
+}
+
+.cellEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-fg-muted);
+  font-size: 0.8125rem;
+}
+
+.cellWinner {
+  outline: 1.5px solid var(--color-primary);
+  outline-offset: -1.5px;
+}
+
+.cellHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.summary {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0.125rem;
+  color: var(--color-fg-muted);
+  border-radius: 0.25rem;
+}
+
+.deleteButton:hover {
+  color: var(--color-destructive);
+}
+
+.grid {
+  margin: 0.375rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.15;
+  white-space: pre;
+}
+
+@media (max-width: 640px) {
+  .columnLabels,
+  .row {
+    grid-template-columns: 3.5rem 1fr 1fr;
+  }
+}
