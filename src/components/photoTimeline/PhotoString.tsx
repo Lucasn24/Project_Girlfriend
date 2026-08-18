@@ -1,12 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { getLocation } from "../../data/locations";
 import { partnerName } from "../../data/thread";
 import { usePhotoTimeline } from "../../hooks/photoTimeline/usePhotoTimeline";
 import { useSettings } from "../../hooks/settings/useSettings";
 import type { PhotoTimelineEntry } from "../../types";
-import { endOfDay, isSameDay, minutesOfDay, startOfDay } from "../../utils/calendarRange";
+import {
+  formatMinutesSincePhotoDayStart,
+  minutesSincePhotoDayStart,
+  photoDayEndExclusive,
+  photoDayStart,
+  PHOTO_DAY_DEFAULT_END_MIN,
+  PHOTO_DAY_MIN_SPAN_MIN,
+} from "../../utils/photoDay";
 import { COLLISION_THRESHOLD_PX, POLAROID_WIDTH_PX } from "./constants";
 import { PolaroidStack } from "./PolaroidStack";
+import { buildRopePath, ROPE_BAND_HEIGHT, type RopeAnchor } from "./ropePath";
 import styles from "./PhotoString.module.css";
 
 interface Cluster {
@@ -14,12 +22,35 @@ interface Cluster {
   members: PhotoTimelineEntry[];
 }
 
-function clusterRow(photos: PhotoTimelineEntry[], ownerTz: string, trackWidthPx: number): Cluster[] {
+interface Domain {
+  left: number;
+  right: number;
+}
+
+/** The x-axis domain (minutes since 7am) shared by both lanes, driven by the actual photos of the day. */
+function computeDomain(photos: PhotoTimelineEntry[], userTz: string, partnerTz: string): Domain {
+  const allMinutes = photos.map((photo) =>
+    minutesSincePhotoDayStart(new Date(photo.timestamp), photo.owner === "user" ? userTz : partnerTz),
+  );
+
+  let left = allMinutes.length ? Math.min(...allMinutes) : 0;
+  let right = Math.max(PHOTO_DAY_DEFAULT_END_MIN, allMinutes.length ? Math.max(...allMinutes) : PHOTO_DAY_DEFAULT_END_MIN);
+
+  if (right - left < PHOTO_DAY_MIN_SPAN_MIN) {
+    right = Math.min(1440, left + PHOTO_DAY_MIN_SPAN_MIN);
+    if (right - left < PHOTO_DAY_MIN_SPAN_MIN) left = Math.max(0, right - PHOTO_DAY_MIN_SPAN_MIN);
+  }
+
+  return { left, right };
+}
+
+function clusterRow(photos: PhotoTimelineEntry[], ownerTz: string, trackWidthPx: number, domain: Domain): Cluster[] {
   const sorted = [...photos].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const span = Math.max(domain.right - domain.left, 1);
   const clusters: Cluster[] = [];
   for (const photo of sorted) {
-    const minutes = minutesOfDay(new Date(photo.timestamp), ownerTz);
-    const raw = (minutes / 1440) * trackWidthPx;
+    const minutes = minutesSincePhotoDayStart(new Date(photo.timestamp), ownerTz);
+    const raw = ((minutes - domain.left) / span) * trackWidthPx;
     const xPx = Math.min(Math.max(raw, POLAROID_WIDTH_PX / 2), trackWidthPx - POLAROID_WIDTH_PX / 2);
     const last = clusters[clusters.length - 1];
     if (last && xPx - last.anchorX < COLLISION_THRESHOLD_PX) {
@@ -36,13 +67,27 @@ function tzAbbrev(date: Date, timeZone: string): string {
   return parts.find((part) => part.type === "timeZoneName")?.value ?? timeZone;
 }
 
-function tickLabel(hour: number): string {
-  if (hour === 0 || hour === 24) return "12am";
-  if (hour === 12) return "12pm";
-  return hour < 12 ? `${hour}am` : `${hour - 12}pm`;
+interface Tick {
+  minute: number;
+  label: string;
 }
 
-const TICK_HOURS = [0, 6, 12, 18, 24];
+/** Whole-hour ticks across the dynamic domain, plus its exact start/end when they fall off-hour. */
+function buildTicks(domain: Domain): Tick[] {
+  const ticks: Tick[] = [];
+  const firstHourMinute = Math.ceil(domain.left / 60) * 60;
+  for (let minute = firstHourMinute; minute <= domain.right; minute += 60) {
+    ticks.push({ minute, label: formatMinutesSincePhotoDayStart(minute) });
+  }
+
+  if (!ticks.length || ticks[0].minute - domain.left > 20) {
+    ticks.unshift({ minute: domain.left, label: formatMinutesSincePhotoDayStart(domain.left) });
+  }
+  if (ticks[ticks.length - 1].minute < domain.right - 20) {
+    ticks.push({ minute: domain.right, label: formatMinutesSincePhotoDayStart(domain.right) });
+  }
+  return ticks;
+}
 
 interface PhotoStringProps {
   cursor: Date;
@@ -54,9 +99,11 @@ export function PhotoString({ cursor, onOpenLightbox, refreshKey }: PhotoStringP
   const { userLocationId, partnerLocationId } = useSettings();
   const userTz = getLocation(userLocationId).timeZone;
   const partnerTz = getLocation(partnerLocationId).timeZone;
+  const ropeGradientId = useId();
 
-  const rangeStart = useMemo(() => startOfDay(cursor, userTz), [cursor, userTz]);
-  const rangeEnd = useMemo(() => endOfDay(cursor, userTz), [cursor, userTz]);
+  const rangeStart = useMemo(() => photoDayStart(cursor, userTz), [cursor, userTz]);
+  const rangeEndExclusive = useMemo(() => photoDayEndExclusive(cursor, userTz), [cursor, userTz]);
+  const rangeEnd = useMemo(() => new Date(rangeEndExclusive.getTime() - 1), [rangeEndExclusive]);
   const { photos, isLoading, error, refetch } = usePhotoTimeline(rangeStart, rangeEnd);
 
   useEffect(() => {
@@ -79,7 +126,7 @@ export function PhotoString({ cursor, onOpenLightbox, refreshKey }: PhotoStringP
   }, []);
 
   const [now, setNow] = useState(() => new Date());
-  const isToday = isSameDay(cursor, now, userTz);
+  const isToday = now.getTime() >= rangeStart.getTime() && now.getTime() < rangeEndExclusive.getTime();
   useEffect(() => {
     if (!isToday) return;
     const id = setInterval(() => setNow(new Date()), 30_000);
@@ -89,16 +136,34 @@ export function PhotoString({ cursor, onOpenLightbox, refreshKey }: PhotoStringP
   const userPhotos = useMemo(() => photos.filter((photo) => photo.owner === "user"), [photos]);
   const partnerPhotos = useMemo(() => photos.filter((photo) => photo.owner === "partner"), [photos]);
 
+  const domain = useMemo(() => computeDomain(photos, userTz, partnerTz), [photos, userTz, partnerTz]);
+  const domainSpan = Math.max(domain.right - domain.left, 1);
+
   const userClusters = useMemo(
-    () => (trackWidth ? clusterRow(userPhotos, userTz, trackWidth) : []),
-    [userPhotos, userTz, trackWidth],
+    () => (trackWidth ? clusterRow(userPhotos, userTz, trackWidth, domain) : []),
+    [userPhotos, userTz, trackWidth, domain],
   );
   const partnerClusters = useMemo(
-    () => (trackWidth ? clusterRow(partnerPhotos, partnerTz, trackWidth) : []),
-    [partnerPhotos, partnerTz, trackWidth],
+    () => (trackWidth ? clusterRow(partnerPhotos, partnerTz, trackWidth, domain) : []),
+    [partnerPhotos, partnerTz, trackWidth, domain],
   );
 
-  const nowX = isToday && trackWidth ? (minutesOfDay(now, userTz) / 1440) * trackWidth : null;
+  const ticks = useMemo(() => buildTicks(domain), [domain]);
+
+  const ropePath = useMemo(() => {
+    if (!trackWidth) return "";
+    const anchors: RopeAnchor[] = [
+      ...userClusters.map((cluster) => ({ x: cluster.anchorX, pull: -1 as const })),
+      ...partnerClusters.map((cluster) => ({ x: cluster.anchorX, pull: 1 as const })),
+    ];
+    return buildRopePath(trackWidth, anchors);
+  }, [trackWidth, userClusters, partnerClusters]);
+
+  const nowMinutes = isToday ? minutesSincePhotoDayStart(now, userTz) : null;
+  const nowX =
+    nowMinutes !== null && trackWidth && nowMinutes >= domain.left && nowMinutes <= domain.right
+      ? ((nowMinutes - domain.left) / domainSpan) * trackWidth
+      : null;
 
   return (
     <div className={styles.wrap}>
@@ -126,7 +191,25 @@ export function PhotoString({ cursor, onOpenLightbox, refreshKey }: PhotoStringP
           ))}
         </div>
 
-        <div className={styles.string} />
+        <div className={styles.stringBand}>
+          {ropePath && (
+            <svg
+              className={styles.stringSvg}
+              viewBox={`0 0 ${trackWidth} ${ROPE_BAND_HEIGHT}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id={ropeGradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#c8935a" />
+                  <stop offset="55%" stopColor="#8a5a34" />
+                  <stop offset="100%" stopColor="#6a421f" />
+                </linearGradient>
+              </defs>
+              <path d={ropePath} fill="none" stroke={`url(#${ropeGradientId})`} strokeWidth={5} strokeLinecap="round" />
+            </svg>
+          )}
+        </div>
 
         <div className={`${styles.lane} ${styles.laneBelow}`}>
           {partnerClusters.map((cluster) => (
@@ -141,9 +224,13 @@ export function PhotoString({ cursor, onOpenLightbox, refreshKey }: PhotoStringP
         </div>
 
         <div className={styles.axisStrip}>
-          {TICK_HOURS.map((hour) => (
-            <span key={hour} className={styles.tickLabel} style={{ left: `${(hour / 24) * 100}%` }}>
-              {tickLabel(hour)}
+          {ticks.map((tick) => (
+            <span
+              key={tick.minute}
+              className={styles.tickLabel}
+              style={{ left: `${((tick.minute - domain.left) / domainSpan) * 100}%` }}
+            >
+              {tick.label}
             </span>
           ))}
         </div>

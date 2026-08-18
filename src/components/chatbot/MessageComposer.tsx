@@ -1,6 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
 import {
-  HeartIcon,
   MicrophoneIcon,
   PaperPlaneTiltIcon,
   PaperclipIcon,
@@ -32,16 +31,6 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.inner}>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => submit("Just thinking about you ❤️")}
-          className={styles.thinkingButton}
-        >
-          <HeartIcon size={13} weight="fill" />
-          Send "thinking of you"
-        </button>
-
         <div className={styles.row}>
           <button type="button" aria-label="Attach a file" className={styles.iconButton}>
             <PaperclipIcon size={20} />

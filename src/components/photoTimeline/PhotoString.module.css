@@ -58,23 +58,17 @@
   margin-top: 0;
 }
 
-.string {
+.stringBand {
   position: relative;
   flex-shrink: 0;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background:
-    repeating-linear-gradient(
-      100deg,
-      color-mix(in srgb, #8a5a34 0%, transparent) 0px,
-      color-mix(in srgb, #7a4d2b 40%, transparent) 2px,
-      transparent 3px,
-      transparent 6px
-    ),
-    linear-gradient(180deg, #a9713f 0%, #7d5029 55%, #6a421f 100%);
-  box-shadow:
-    0 1px 2px color-mix(in srgb, black 30%, transparent),
-    inset 0 1px 1px color-mix(in srgb, white 25%, transparent);
+  height: 1.75rem;
+}
+
+.stringSvg {
+  display: block;
+  height: 100%;
+  width: 100%;
+  filter: drop-shadow(0 2px 2px color-mix(in srgb, black 30%, transparent));
 }
 
 .axisStrip {

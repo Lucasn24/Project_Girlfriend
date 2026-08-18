@@ -181,7 +181,7 @@ export function TodayAgendaCard() {
       {!error && isLoading && events.length === 0 && <p className={styles.empty}>Loading…</p>}
       {isEmpty && <p className={styles.empty}>Nothing on the calendar today.</p>}
 
-      {!error && !isEmpty && (
+      {!error && (
         <div className={styles.timeline}>
           {hasAllDay && (
             <div className={styles.allDayRow}>

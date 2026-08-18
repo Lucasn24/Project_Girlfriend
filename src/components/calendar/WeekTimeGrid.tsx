@@ -123,11 +123,47 @@ export function WeekTimeGrid({
   const [drag, setDrag] = useState<DragState | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const stickyTopRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const syncingScrollRef = useRef<"top" | "body" | null>(null);
+
   useEffect(() => {
     nowLineRef.current?.scrollIntoView({ block: "center" });
     // Runs once per mount: the parent remounts this component (via `key`) whenever
     // the visible week changes, so this still re-centers on a fresh week.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Keeps the sticky day headers in horizontal sync with the scrollable
+    // body on the narrow-viewport layout, where both scroll sideways.
+    const top = stickyTopRef.current;
+    const body = bodyRef.current;
+    if (!top || !body) return;
+
+    const handleTopScroll = () => {
+      if (syncingScrollRef.current === "body") return;
+      syncingScrollRef.current = "top";
+      body.scrollLeft = top.scrollLeft;
+      requestAnimationFrame(() => {
+        syncingScrollRef.current = null;
+      });
+    };
+    const handleBodyScroll = () => {
+      if (syncingScrollRef.current === "top") return;
+      syncingScrollRef.current = "body";
+      top.scrollLeft = body.scrollLeft;
+      requestAnimationFrame(() => {
+        syncingScrollRef.current = null;
+      });
+    };
+
+    top.addEventListener("scroll", handleTopScroll);
+    body.addEventListener("scroll", handleBodyScroll);
+    return () => {
+      top.removeEventListener("scroll", handleTopScroll);
+      body.removeEventListener("scroll", handleBodyScroll);
+    };
   }, []);
 
   const applyDrag = (next: DragState | null) => {
@@ -287,7 +323,7 @@ export function WeekTimeGrid({
 
   return (
     <div className={styles.grid}>
-      <div className={styles.stickyTop}>
+      <div className={styles.stickyTop} ref={stickyTopRef}>
         <div className={styles.headerRow}>
           <div className={styles.gutter} />
           {days.map((day) => {
@@ -344,6 +380,7 @@ export function WeekTimeGrid({
         )}
       </div>
 
+      <div className={styles.body} ref={bodyRef}>
       <div className={styles.hourGrid}>
         <div className={styles.hourLabels}>
           {HOURS.map((hour) => (
@@ -514,6 +551,7 @@ export function WeekTimeGrid({
             );
           })}
         </div>
+      </div>
       </div>
     </div>
   );
