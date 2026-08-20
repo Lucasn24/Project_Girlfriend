@@ -1,31 +1,15 @@
-import { useState } from "react";
 import { CalendarBlankIcon, MapPinIcon, MoonIcon, SunIcon, UserIcon } from "@phosphor-icons/react";
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { LOCATIONS } from "../data/locations";
 import { partnerName } from "../data/thread";
-import { useCalendarSync } from "../hooks/calendar/useCalendarSync";
 import { useGoogleCalendarSync } from "../hooks/calendar/useGoogleCalendarSync";
 import { useSettings } from "../hooks/settings/useSettings";
-import type { CalendarOwner, CalendarStatus } from "../types";
+import type { CalendarOwner } from "../types";
 import styles from "./SettingsPage.module.css";
-
-function formatLastSynced(iso: string | null): string {
-  if (!iso) return "Not synced yet";
-  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
-  if (minutes < 1) return "Synced just now";
-  if (minutes < 60) return `Synced ${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `Synced ${hours}h ago`;
-  return `Synced ${Math.round(hours / 24)}d ago`;
-}
 
 interface CalendarSyncFieldProps {
   owner: CalendarOwner;
   title: string;
-  possessive: string;
-  status: CalendarStatus;
-  isSaving: boolean;
-  onSave: (owner: CalendarOwner, url: string) => void;
   googleConfigured: boolean;
   googleConnected: boolean;
   isConnectingGoogle: boolean;
@@ -36,23 +20,12 @@ interface CalendarSyncFieldProps {
 function CalendarSyncField({
   owner,
   title,
-  possessive,
-  status,
-  isSaving,
-  onSave,
   googleConfigured,
   googleConnected,
   isConnectingGoogle,
   onConnectGoogle,
   onDisconnectGoogle,
 }: CalendarSyncFieldProps) {
-  const [value, setValue] = useState("");
-
-  const handleSave = () => {
-    onSave(owner, value);
-    setValue("");
-  };
-
   return (
     <DashboardCard icon={<CalendarBlankIcon size={16} weight="fill" />} title={title}>
       <div className={styles.googleSyncRow}>
@@ -77,56 +50,6 @@ function CalendarSyncField({
           Google Calendar isn't configured on the server yet — add GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI to .env.
         </p>
       )}
-
-      {googleConnected ? (
-        <p className={styles.helpText}>
-          This calendar is synced via Google — the iCal link below is unused while connected.
-        </p>
-      ) : (
-        <>
-          <p className={styles.helpText}>
-            Or, for one-way (read-only) import: in Google Calendar, go to Settings → {possessive} calendar → "Secret
-            address in iCal format", copy it, and paste it below.
-          </p>
-          <div className={styles.calendarField}>
-            <input
-              type="text"
-              className={styles.select}
-              placeholder={status.configured ? "Connected — paste a new URL to replace it" : "Paste secret iCal URL"}
-              value={value}
-              onChange={(event) => setValue(event.target.value)}
-            />
-            <button
-              type="button"
-              className={styles.saveButton}
-              onClick={handleSave}
-              disabled={isSaving || !value.trim()}
-            >
-              {isSaving ? "Saving…" : "Save"}
-            </button>
-          </div>
-          <div className={styles.calendarStatusRow}>
-            <span
-              className={`${styles.statusDot} ${status.configured ? styles.statusDotOk : ""}`}
-              aria-hidden="true"
-            />
-            <span>
-              {status.configured ? formatLastSynced(status.lastSyncedAt) : "Not connected"}
-              {status.error ? ` · ${status.error}` : ""}
-            </span>
-            {status.configured && (
-              <button
-                type="button"
-                className={styles.removeButton}
-                onClick={() => onSave(owner, "")}
-                disabled={isSaving}
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        </>
-      )}
     </DashboardCard>
   );
 }
@@ -134,7 +57,6 @@ function CalendarSyncField({
 export function SettingsPage() {
   const { userLocationId, partnerLocationId, theme, setUserLocationId, setPartnerLocationId, setTheme } =
     useSettings();
-  const { status, savingOwner, setCalendarUrl } = useCalendarSync();
   const { status: googleStatus, connectingOwner, connect: connectGoogle, disconnect: disconnectGoogle } =
     useGoogleCalendarSync();
 
@@ -201,10 +123,6 @@ export function SettingsPage() {
           <CalendarSyncField
             owner="user"
             title="Your calendar"
-            possessive="your"
-            status={status.user}
-            isSaving={savingOwner === "user"}
-            onSave={setCalendarUrl}
             googleConfigured={googleStatus.configured}
             googleConnected={googleStatus.user.connected}
             isConnectingGoogle={connectingOwner === "user"}
@@ -215,10 +133,6 @@ export function SettingsPage() {
           <CalendarSyncField
             owner="partner"
             title={`${partnerName}'s calendar`}
-            possessive={`${partnerName}'s`}
-            status={status.partner}
-            isSaving={savingOwner === "partner"}
-            onSave={setCalendarUrl}
             googleConfigured={googleStatus.configured}
             googleConnected={googleStatus.partner.connected}
             isConnectingGoogle={connectingOwner === "partner"}

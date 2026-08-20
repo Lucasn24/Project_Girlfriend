@@ -8,20 +8,6 @@ import { fileURLToPath } from "node:url";
 import { streamReply, type HistoryTurn } from "./gemini.js";
 import { generateCouplePhoto, getCouplePhotoState } from "./couplePhoto.js";
 import {
-  getAllCalendarStatuses,
-  getEvents,
-  setCalendarUrl,
-  startCalendarSync,
-  type CalendarOwner,
-} from "./calendar.js";
-import {
-  createLocalEvent,
-  deleteLocalEvent,
-  getLocalEvents,
-  updateLocalEvent,
-  type LocalEventPatch,
-} from "./localEvents.js";
-import {
   createGoogleEvent,
   deleteGoogleEvent,
   disconnectGoogle,
@@ -32,6 +18,7 @@ import {
   listGoogleEvents,
   parseGoogleEventId,
   updateGoogleEvent,
+  type CalendarOwner,
   type GoogleEventPatch,
 } from "./googleCalendar.js";
 import { addGame, deleteGame, getGames, type GameOwner } from "./games.js";
@@ -97,31 +84,6 @@ function isOwner(value: unknown): value is CalendarOwner {
   return value === "user" || value === "partner";
 }
 
-app.get("/api/calendar/status", (_req, res) => {
-  res.json(getAllCalendarStatuses());
-});
-
-app.put("/api/calendar/config/:owner", async (req, res) => {
-  const { owner } = req.params;
-  if (!isOwner(owner)) {
-    res.status(400).json({ error: "owner must be 'user' or 'partner'" });
-    return;
-  }
-
-  const url = req.body?.url;
-  if (url !== null && typeof url !== "string") {
-    res.status(400).json({ error: "url must be a string or null" });
-    return;
-  }
-
-  try {
-    const status = await setCalendarUrl(owner, url);
-    res.json(status);
-  } catch (error) {
-    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to save calendar" });
-  }
-});
-
 function parseRangeParams(req: express.Request): { start: Date; end: Date } | null {
   const startParam = req.query.start;
   const endParam = req.query.end;
@@ -144,23 +106,8 @@ app.get("/api/calendar/events", async (req, res) => {
   }
 
   try {
-    const [icalEventsRaw, localEvents, googleStatuses] = await Promise.all([
-      getEvents(range.start, range.end),
-      getLocalEvents(range.start, range.end),
-      getConnectionStatuses(),
-    ]);
-
-    const googleConnectedOwners = OWNERS.filter((owner) => googleStatuses[owner].connected);
-    // A Google-connected owner's events come from the live API; drop their cached
-    // ICS import so the same event doesn't show up twice.
-    const icalEvents = icalEventsRaw.filter((event) => !googleConnectedOwners.includes(event.owner));
-    const googleEventLists = await Promise.all(
-      googleConnectedOwners.map((owner) => listGoogleEvents(owner, range.start, range.end)),
-    );
-
-    const events = [...icalEvents, ...googleEventLists.flat(), ...localEvents].sort((a, b) =>
-      a.start.localeCompare(b.start),
-    );
+    const eventLists = await Promise.all(OWNERS.map((owner) => listGoogleEvents(owner, range.start, range.end)));
+    const events = eventLists.flat().sort((a, b) => a.start.localeCompare(b.start));
     res.json({ events });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Failed to load calendar events" });
@@ -170,7 +117,7 @@ app.get("/api/calendar/events", async (req, res) => {
 function parseEventInput(
   body: unknown,
 ):
-  | { owner: CalendarOwner; title: string; start: string; end: string; allDay: boolean; location?: string; timeZone?: string }
+  | { owner: CalendarOwner; title: string; start: string; end: string; allDay: boolean; location?: string; timeZone: string }
   | { error: string } {
   const { owner, title, start, end, allDay, location, timeZone } = (body ?? {}) as Record<string, unknown>;
 
@@ -185,7 +132,7 @@ function parseEventInput(
   if (new Date(end).getTime() < new Date(start).getTime()) return { error: "end must not be before start" };
   if (typeof allDay !== "boolean") return { error: "allDay must be a boolean" };
   if (location !== undefined && typeof location !== "string") return { error: "location must be a string" };
-  if (timeZone !== undefined && typeof timeZone !== "string") return { error: "timeZone must be a string" };
+  if (typeof timeZone !== "string" || !timeZone) return { error: "timeZone is required" };
 
   return {
     owner,
@@ -194,7 +141,7 @@ function parseEventInput(
     end,
     allDay,
     location: location?.trim() || undefined,
-    timeZone: timeZone || undefined,
+    timeZone,
   };
 }
 
@@ -207,24 +154,19 @@ app.post("/api/calendar/events", async (req, res) => {
 
   try {
     const googleStatus = await getConnectionStatuses();
-    if (googleStatus[parsed.owner].connected) {
-      if (!parsed.timeZone) {
-        res.status(400).json({ error: "timeZone is required to create a Google Calendar event" });
-        return;
-      }
-      const event = await createGoogleEvent(parsed.owner, {
-        title: parsed.title,
-        start: parsed.start,
-        end: parsed.end,
-        allDay: parsed.allDay,
-        location: parsed.location,
-        timeZone: parsed.timeZone,
-      });
-      res.status(201).json(event);
+    if (!googleStatus[parsed.owner].connected) {
+      res.status(400).json({ error: "Google Calendar isn't connected for this owner" });
       return;
     }
 
-    const event = await createLocalEvent(parsed);
+    const event = await createGoogleEvent(parsed.owner, {
+      title: parsed.title,
+      start: parsed.start,
+      end: parsed.end,
+      allDay: parsed.allDay,
+      location: parsed.location,
+      timeZone: parsed.timeZone,
+    });
     res.status(201).json(event);
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Failed to create calendar event" });
@@ -234,107 +176,52 @@ app.post("/api/calendar/events", async (req, res) => {
 app.put("/api/calendar/events/:id", async (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const googleRef = parseGoogleEventId(req.params.id);
-
-  if (googleRef) {
-    const googlePatch: GoogleEventPatch = {};
-
-    if ("title" in body) {
-      if (typeof body.title !== "string" || !body.title.trim()) {
-        res.status(400).json({ error: "title must be a non-empty string" });
-        return;
-      }
-      googlePatch.title = body.title.trim();
-    }
-    if ("location" in body) {
-      if (body.location !== null && typeof body.location !== "string") {
-        res.status(400).json({ error: "location must be a string or null" });
-        return;
-      }
-      googlePatch.location = body.location ? body.location.trim() : undefined;
-    }
-    if ("start" in body || "end" in body || "allDay" in body) {
-      const { start, end, allDay, timeZone } = body;
-      if (
-        typeof start !== "string" ||
-        Number.isNaN(new Date(start).getTime()) ||
-        typeof end !== "string" ||
-        Number.isNaN(new Date(end).getTime()) ||
-        typeof allDay !== "boolean" ||
-        typeof timeZone !== "string" ||
-        !timeZone
-      ) {
-        res.status(400).json({
-          error: "updating dates on a Google-synced event requires start, end, allDay, and timeZone together",
-        });
-        return;
-      }
-      if (new Date(end).getTime() < new Date(start).getTime()) {
-        res.status(400).json({ error: "end must not be before start" });
-        return;
-      }
-      googlePatch.dates = { start, end, allDay, timeZone };
-    }
-
-    try {
-      const updated = await updateGoogleEvent(googleRef.owner, googleRef.googleEventId, googlePatch);
-      if (!updated) {
-        res.status(404).json({ error: "Calendar event not found" });
-        return;
-      }
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to update calendar event" });
-    }
+  if (!googleRef) {
+    res.status(404).json({ error: "Calendar event not found" });
     return;
   }
 
-  const patch: LocalEventPatch = {};
+  const googlePatch: GoogleEventPatch = {};
 
-  if ("owner" in body) {
-    if (!isOwner(body.owner)) {
-      res.status(400).json({ error: "owner must be 'user' or 'partner'" });
-      return;
-    }
-    patch.owner = body.owner;
-  }
   if ("title" in body) {
     if (typeof body.title !== "string" || !body.title.trim()) {
       res.status(400).json({ error: "title must be a non-empty string" });
       return;
     }
-    patch.title = body.title.trim();
-  }
-  if ("start" in body) {
-    if (typeof body.start !== "string" || Number.isNaN(new Date(body.start).getTime())) {
-      res.status(400).json({ error: "start must be a valid ISO date string" });
-      return;
-    }
-    patch.start = body.start;
-  }
-  if ("end" in body) {
-    if (typeof body.end !== "string" || Number.isNaN(new Date(body.end).getTime())) {
-      res.status(400).json({ error: "end must be a valid ISO date string" });
-      return;
-    }
-    patch.end = body.end;
-  }
-  if ("allDay" in body) {
-    if (typeof body.allDay !== "boolean") {
-      res.status(400).json({ error: "allDay must be a boolean" });
-      return;
-    }
-    patch.allDay = body.allDay;
+    googlePatch.title = body.title.trim();
   }
   if ("location" in body) {
     if (body.location !== null && typeof body.location !== "string") {
       res.status(400).json({ error: "location must be a string or null" });
       return;
     }
-    patch.location = body.location ? body.location.trim() || undefined : undefined;
+    googlePatch.location = body.location ? body.location.trim() : undefined;
+  }
+  if ("start" in body || "end" in body || "allDay" in body) {
+    const { start, end, allDay, timeZone } = body;
+    if (
+      typeof start !== "string" ||
+      Number.isNaN(new Date(start).getTime()) ||
+      typeof end !== "string" ||
+      Number.isNaN(new Date(end).getTime()) ||
+      typeof allDay !== "boolean" ||
+      typeof timeZone !== "string" ||
+      !timeZone
+    ) {
+      res.status(400).json({
+        error: "updating dates on a Google-synced event requires start, end, allDay, and timeZone together",
+      });
+      return;
+    }
+    if (new Date(end).getTime() < new Date(start).getTime()) {
+      res.status(400).json({ error: "end must not be before start" });
+      return;
+    }
+    googlePatch.dates = { start, end, allDay, timeZone };
   }
 
   try {
-    const updated = await updateLocalEvent(req.params.id, patch);
+    const updated = await updateGoogleEvent(googleRef.owner, googleRef.googleEventId, googlePatch);
     if (!updated) {
       res.status(404).json({ error: "Calendar event not found" });
       return;
@@ -347,11 +234,13 @@ app.put("/api/calendar/events/:id", async (req, res) => {
 
 app.delete("/api/calendar/events/:id", async (req, res) => {
   const googleRef = parseGoogleEventId(req.params.id);
+  if (!googleRef) {
+    res.status(404).json({ error: "Calendar event not found" });
+    return;
+  }
 
   try {
-    const removed = googleRef
-      ? await deleteGoogleEvent(googleRef.owner, googleRef.googleEventId)
-      : await deleteLocalEvent(req.params.id);
+    const removed = await deleteGoogleEvent(googleRef.owner, googleRef.googleEventId);
     if (!removed) {
       res.status(404).json({ error: "Calendar event not found" });
       return;
@@ -661,10 +550,6 @@ app.get("/api/photo-timeline/export", async (req, res) => {
 });
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
-
-startCalendarSync().catch((error) => {
-  console.error("[calendar] failed to start sync:", error);
-});
 
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`);

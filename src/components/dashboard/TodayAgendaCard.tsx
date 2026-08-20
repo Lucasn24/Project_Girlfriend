@@ -250,8 +250,7 @@ export function TodayAgendaCard() {
           initialAllDay={selectedEvent.allDay}
           initialLocation={selectedEvent.location ?? ""}
           timeZone={timeZone}
-          canDelete={selectedEvent.source !== "ical"}
-          readOnly={selectedEvent.source === "ical"}
+          canDelete
           isSaving={isSaving}
           error={mutationError}
           onSave={handleSave}

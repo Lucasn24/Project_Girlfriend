@@ -44,7 +44,7 @@ export type ThreadItem = ChatMessage | Divider;
 
 export type CalendarOwner = "user" | "partner";
 
-export type CalendarEventSource = "local" | "ical" | "google";
+export type CalendarEventSource = "google";
 
 export interface CalendarEvent {
   id: string;
@@ -55,12 +55,6 @@ export interface CalendarEvent {
   allDay: boolean;
   location?: string;
   source: CalendarEventSource;
-}
-
-export interface CalendarStatus {
-  configured: boolean;
-  lastSyncedAt: string | null;
-  error: string | null;
 }
 
 export interface CouplePhotoState {

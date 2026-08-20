@@ -260,7 +260,7 @@ export function WeekTimeGrid({
   };
 
   const startMove = (calEvent: CalendarEvent, dayIndex: number, day: Date, event: React.MouseEvent) => {
-    if (calEvent.source === "ical" || event.button !== 0) return;
+    if (event.button !== 0) return;
     event.stopPropagation();
     const point = getPoint(event.clientX, event.clientY);
     if (!point) return;
@@ -280,7 +280,7 @@ export function WeekTimeGrid({
   };
 
   const startResize = (calEvent: CalendarEvent, dayIndex: number, day: Date, event: React.MouseEvent) => {
-    if (calEvent.source === "ical" || event.button !== 0) return;
+    if (event.button !== 0) return;
     event.stopPropagation();
     event.preventDefault();
     const { startMinutes, endMinutes } = clipToDay(calEvent, day, timeZone);
@@ -464,14 +464,13 @@ export function WeekTimeGrid({
                   const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT_REM, MIN_EVENT_HEIGHT_REM);
                   const widthPct = 100 / columns;
                   const leftPct = widthPct * column;
-                  const isEditable = event.source !== "ical";
 
                   return (
                     <div
                       key={event.id}
                       className={`${styles.timedEvent} ${
                         event.owner === "user" ? styles.eventUser : styles.eventPartner
-                      } ${isEditable ? styles.timedEventLocal : ""}`}
+                      } ${styles.timedEventLocal}`}
                       style={{
                         top: `${top}rem`,
                         height: `${height}rem`,
@@ -492,12 +491,10 @@ export function WeekTimeGrid({
                     >
                       <span className={styles.timedEventTime}>{eventTimeLabel(event, timeZone)}</span>
                       <span className={styles.timedEventTitle}>{event.title}</span>
-                      {isEditable && (
-                        <div
-                          className={styles.resizeHandle}
-                          onMouseDown={(e) => startResize(event, dayIndex, day, e)}
-                        />
-                      )}
+                      <div
+                        className={styles.resizeHandle}
+                        onMouseDown={(e) => startResize(event, dayIndex, day, e)}
+                      />
                     </div>
                   );
                 })}

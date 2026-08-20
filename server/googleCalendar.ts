@@ -3,7 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { google, type calendar_v3 } from "googleapis";
 import type { Credentials, OAuth2Client } from "google-auth-library";
-import type { CalendarOwner } from "./calendar.js";
+
+export type CalendarOwner = "user" | "partner";
 
 export interface GoogleCalendarEvent {
   id: string;

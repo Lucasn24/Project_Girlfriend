@@ -156,7 +156,6 @@ export function CalendarPage() {
   };
 
   const handleEventChange = async (event: CalendarEvent, start: Date, end: Date) => {
-    if (event.source === "ical") return;
     await updateEvent(event.id, {
       start: start.toISOString(),
       end: end.toISOString(),
@@ -166,14 +165,11 @@ export function CalendarPage() {
   };
 
   const openEventContextMenu = (event: CalendarEvent, x: number, y: number) => {
-    const items: ContextMenuItem[] =
-      event.source !== "ical"
-        ? [
-            { label: "Edit event", onSelect: () => openEditModal(event) },
-            { label: "Duplicate event", onSelect: () => handleDuplicate(event) },
-            { label: "Delete event", danger: true, onSelect: () => handleDeleteById(event.id) },
-          ]
-        : [{ label: "View details", onSelect: () => openEditModal(event) }];
+    const items: ContextMenuItem[] = [
+      { label: "Edit event", onSelect: () => openEditModal(event) },
+      { label: "Duplicate event", onSelect: () => handleDuplicate(event) },
+      { label: "Delete event", danger: true, onSelect: () => handleDeleteById(event.id) },
+    ];
     setContextMenu({ x, y, items });
   };
 
@@ -194,10 +190,6 @@ export function CalendarPage() {
   };
 
   const handleMonthDragStart = (event: CalendarEvent, dragEvent: React.DragEvent) => {
-    if (event.source === "ical") {
-      dragEvent.preventDefault();
-      return;
-    }
     dragEvent.dataTransfer.setData("text/plain", event.id);
     dragEvent.dataTransfer.effectAllowed = "move";
   };
@@ -206,7 +198,7 @@ export function CalendarPage() {
     dragEvent.preventDefault();
     const id = dragEvent.dataTransfer.getData("text/plain");
     const dragged = events.find((event) => event.id === id);
-    if (!dragged || dragged.source === "ical") return;
+    if (!dragged) return;
 
     const originalStart = new Date(dragged.start);
     const originalEnd = new Date(dragged.end);
@@ -337,7 +329,7 @@ export function CalendarPage() {
                           event.owner === "user" ? styles.eventPillUser : styles.eventPillPartner
                         }`}
                         title={event.title}
-                        draggable={event.source !== "ical"}
+                        draggable
                         onDragStart={(dragEvent) => handleMonthDragStart(event, dragEvent)}
                         onClick={(clickEvent) => {
                           clickEvent.stopPropagation();
@@ -373,8 +365,7 @@ export function CalendarPage() {
           initialAllDay={modalState.mode === "edit" ? modalState.event.allDay : modalState.allDay}
           initialLocation={modalState.mode === "edit" ? modalState.event.location ?? "" : ""}
           timeZone={timeZone}
-          canDelete={modalState.mode === "edit" && modalState.event.source !== "ical"}
-          readOnly={modalState.mode === "edit" && modalState.event.source === "ical"}
+          canDelete={modalState.mode === "edit"}
           isSaving={isSaving}
           error={mutationError}
           onSave={handleSave}

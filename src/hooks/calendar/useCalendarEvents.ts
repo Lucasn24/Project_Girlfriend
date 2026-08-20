@@ -10,8 +10,8 @@ export interface CalendarEventInput {
   end: string;
   allDay: boolean;
   location?: string;
-  /** IANA time zone. Required when the target owner's events are Google-synced. */
-  timeZone?: string;
+  /** IANA time zone, required for all Google Calendar events. */
+  timeZone: string;
 }
 
 export type CalendarEventPatch = Partial<CalendarEventInput>;
